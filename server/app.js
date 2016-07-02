@@ -1,11 +1,11 @@
 require('dotenv').config();
  var express = require('express'),
-    app = express(),
-    server = require('http').createServer(app),
-    io = require('socket.io').listen(server),
-    router = express.Router(),
+    app      = express(),
+    server   = require('http').createServer(app),
+    io       = require('socket.io').listen(server),
+    router   = express.Router(),
     bodyParser = require('body-parser'),
-    cors = require('cors'),
+    cors       = require('cors'),
     path = require('path');
 
 
@@ -116,33 +116,29 @@ io.sockets.on('connect', function(socket){
       // console.log('---------------- This is messages-------------------')
     })
 
-    console.log(onlineClients[userTo])
-      console.log(onlineClients[socket.username])
+    // console.log(onlineClients[userTo])
+    //   console.log(onlineClients[socket.username])
     io.sockets.connected[onlineClients[userTo]].emit('updatePrivateChat', socket.username, userTo, privateMessage)
     io.sockets.connected[onlineClients[socket.username]].emit('updatePrivateChat', socket.username, userTo, privateMessage)
   })
 
 
    socket.on('chatAccepted', function(sender, reciepant){
-      console.log('---------------------This is chatAccepted-------------')
-      console.log(sender);
-      console.log(reciepant);
-      console.log(onlineClients[sender])
-      console.log(onlineClients[reciepant])
       var UsersInPoemRoom = {
         user1: sender,
         user2: reciepant
       }
-      console.log('---------------------This is chatAccepted-------------')
       io.sockets.connected[onlineClients[sender]].emit('EnterThePoemRoom', 'this worked yo', UsersInPoemRoom)
       io.sockets.connected[onlineClients[reciepant]].emit('EnterThePoemRoom', 'this worked yo', UsersInPoemRoom)
     })
 
+   var finalPoem = '';
    socket.on('poeming', function(userOnePoem, users, userTwoPoem, finalPoem){
 
     console.log(userOnePoem, 'userone poem')
     console.log(userTwoPoem, 'usertwo poem')
-    console.log('----------------------------------------------------------------------this is poemingggn')
+    console.log(finalPoem, 'final poem')
+    console.log('---------------------------------------this is poemingggn')
     console.log(users)
 
     var sender = users.user1;
@@ -151,15 +147,12 @@ io.sockets.on('connect', function(socket){
     io.sockets.connected[onlineClients[recipient]].emit('updatePoem', userOnePoem, userTwoPoem, finalPoem)
    })
 
-   var poem = ''
-   socket.on('finalPoem', function(finalPoem){
-    poem = ''
-    poem += finalPoem
-
+   var poetry = ''
+   socket.on('finalPoem', function(poem){
     console.log(poem)
-    console.log('----this is final poem --------------------------------------------------------------------------------')
-
+    console.log(poetry += poem)
    })
+
 
 
 

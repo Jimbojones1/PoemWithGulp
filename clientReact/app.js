@@ -41,13 +41,13 @@ var Container = React.createClass({
           state.chatOpen = true;
           self.setState(state);
           console.log(userTo);
-          console.log('if happened----------------------------------------------------------------------------------------------------------------')
+          // console.log('if happened----------------------------------------------------------------------------------------------------------------')
         }
         else if(privateMessage != 'poemWithMeAccepted'){
           state.chatOpen = true;
           state.chatBoxes.push(from)
-          console.log(from)
-          console.log('else happened --------------------------------------------------------------------------------------------------------------')
+          // console.log(from)
+          // console.log('else happened --------------------------------------------------------------------------------------------------------------')
           self.setState(state)
         }
 
@@ -56,12 +56,12 @@ var Container = React.createClass({
           state.user = from;
           self.setState(state);
 
-          console.log('poeom with me happppend ddafkdjasklfjadsklfjasdklfjasd')
+          // console.log('poeom with me happppend ddafkdjasklfjadsklfjasdklfjasd')
         }
         else if (privateMessage === 'poemWithMeAccepted'){
-          console.log('poemWithMeAccepted-------------------------------------');
+          // console.log('poemWithMeAccepted-------------------------------------');
         }
-        console.log('-------------------- this is updatePrivateCHat');
+        // console.log('-------------------- this is updatePrivateCHat');
         console.log(self.state);
       })
 
@@ -424,25 +424,29 @@ var Room = React.createClass({
     return {finalPoem: '', userTextArea: '', userTwo: ''}
   },
   getUserTextAreaInput: function(userText, userTyping){
-    console.log(userText);
     var state = this.state;
     console.log(state)
+    var length = userText.length;
+    var letter = userText.slice(length - 1, length);
     if(this.props.roomUsers.user1 === userTyping){
       console.log(this.props.roomUsers.user1)
       console.log(userTyping)
       console.log(state, 'if hit state')
       console.log('if hit ------------------------------------------------------------')
-      state.userTextArea = userText;
+      state.userTextArea = letter;
+      socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem)
       this.setState(state)
 
     }else {
-      state.userTwo = userText;
+      state.userTwo = letter;
       console.log(state, 'state')
       console.log('else hit ------------------------------------------------------------')
+      socket.emit('poeming', state.userTwo, this.props.roomUsers, this.state.userTextArea, this.state.finalPoem)
+
       this.setState(state)
     }
 
-    socket.emit('poeming', this.state.userTwo, this.props.roomUsers, this.state.userTextArea, this.state.finalPoem)
+
 
   },
   componentDidMount: function(){
@@ -451,35 +455,33 @@ var Room = React.createClass({
     socket.on('updatePoem', function(userOnePoem, userTwoPoem, finalPoem){
       console.log(userOnePoem, userTwoPoem)
       console.log('finall poem =------==--=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=')
-      console.log(finalPoem)
-      console.log(userOnePoem)
-      console.log(userTwoPoem)
-      console.log('this is right before the if/else statement in the room component')
-      var poem = '';
-      if(userOnePoem.length > 1){
+      console.log(finalPoem, 'this is final POem')
+      console.log(userOnePoem, ' this is useronePoem')
+      console.log(userTwoPoem, ' this is userTwoPoem')
+      if(userOnePoem.length >= 1){
         console.log('this is the if statement in the Room Component')
-        console.log(state)
-        state.finalPoem = state.finalPoem + ' ' + userOnePoem;
-        socket.emit('finalPoem', state.finalPoem)
-        state.userTextArea = ''
-        self.setState(state)
+        console.log(state, 'state')
 
+        state.finalPoem = state.finalPoem + userOnePoem;
+        self.setState(state)
+      }
+      else if(userTwoPoem.length >= 1){
+        console.log(state, 'state in else statement')
+        console.log('this is the else statement in the Room Component')
+
+        state.finalPoem = state.finalPoem + userTwoPoem;
+        self.setState(state)
       }
       else {
-         console.log(state)
-          console.log('this is the else statement in the Room Component')
-
-        state.finalPoem = state.finalPoem + ' ' + userTwoPoem;
-         socket.emit('finalPoem', state.finalPoem)
-        state.userTwo = ''
+        var length = state.finalPoem.length
+        var backspace = state.finalPoem.slice(0, length - 1)
+        console.log('backspaceeeeeeeeeeeee', backspace)
+        console.log(backspace)
+        state.finalPoem = backspace;
         self.setState(state)
-
       }
-      state.finalPoem = ''
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ updatePoem socket")
+
     })
-
-
   },
   render: function(){
     console.log(this.props.roomUsers)
@@ -497,19 +499,37 @@ var Room = React.createClass({
 
 
 var RoomUser = React.createClass({
-  handleTyping: function(event){
+  getInitialState: function(){
+    return {textAreaValue: '', keyCode: ''}
+  },
+  keyDown: function(e){
+    console.log(e.keyCode)
+    var state = this.state;
+    state.keyCode = e.keyCode;
+    this.setState(state)
+  },
+  handleTyping: function(event, keycode){
     var user = this.props.user.user1 != socket.username ? this.props.user.user2 : this.props.user.user1;
-    this.props.getUserTextAreaInput(event.target.value, user)
-    console.log('this is handleTyping in the RoomUser component')
+    var state = this.state;
+        console.log(event)
+        console.log(state)
+        console.log(event.target)
+    state.textAreaValue = event.target.value;
+    this.setState(state)
+    if(state.keyCode === 8){
+      console.log('backspace was pressed')
+      this.props.getUserTextAreaInput('', user)
+    }
+    else {
+      this.props.getUserTextAreaInput(event.target.value, user)
+    }
+
   },
   render: function(){
-    console.log(this.state)
-    console.log('--------------------------------gotch RoomUser Component')
-
     return (
       <div id="RoomUser">
         {this.props.user.user1 != socket.username ? <h4>{this.props.user.user2}</h4> : <h4>{this.props.user.user1}</h4>}
-        <textarea type="text" placeholder="Username Biotch" onChange={this.handleTyping} />
+        <textarea type="text" placeholder="Username Biotch" onChange={this.handleTyping} onKeyDown={this.keyDown} value={this.state.textAreaValue}/>
       </div>
       )
     }
@@ -520,7 +540,7 @@ var PoemArea = React.createClass({
     return (
       <div id="PoemArea">
           <h4>This is the Poem Area </h4>
-          <p id="poemsArea" value={this.props.poem}>{this.props.poem}</p>
+          <p id="poemsArea">{this.props.poem}</p>
       </div>
       )
     }
@@ -531,10 +551,48 @@ var PoemContainer = React.createClass({
     return (
       <div id="peomContainer">
         <p>This is poem container</p>
+        <Timer start={Date.now()}/>
       </div>
       )
   }
 })
+
+
+var Timer = React.createClass({
+  getInitialState: function(){
+    return {time: 30}
+  },
+  componentDidMount: function(){
+    // set the interval for timer here
+  this.timer = setInterval(this.tick, 1000)
+  },
+  componentWillMount: function(){
+    //clear the interval here
+    clearInterval(this.timer)
+  },
+  tick: function(){
+    // calling setState causes the component to be re-rendered
+    if (this.state.time > 0){
+       this.setState({time: this.state.time - 1})
+    }
+
+
+
+
+  },
+  render: function(){
+
+
+
+    return (<p> THis example was started {this.state.time} ago </p>)
+  }
+})
+
+
+
+
+
+
 // var ModalButtons = React.createClass({
 //   render: function(){
 //     return (
