@@ -115,9 +115,6 @@ io.sockets.on('connect', function(socket){
       // console.log(Messages)
       // console.log('---------------- This is messages-------------------')
     })
-
-    // console.log(onlineClients[userTo])
-    //   console.log(onlineClients[socket.username])
     io.sockets.connected[onlineClients[userTo]].emit('updatePrivateChat', socket.username, userTo, privateMessage)
     io.sockets.connected[onlineClients[socket.username]].emit('updatePrivateChat', socket.username, userTo, privateMessage)
   })
@@ -132,7 +129,7 @@ io.sockets.on('connect', function(socket){
       io.sockets.connected[onlineClients[reciepant]].emit('EnterThePoemRoom', 'this worked yo', UsersInPoemRoom)
     })
 
-   var finalPoem = '';
+
    socket.on('poeming', function(userOnePoem, users, userTwoPoem, finalPoem){
 
     console.log(userOnePoem, 'userone poem')
@@ -147,14 +144,14 @@ io.sockets.on('connect', function(socket){
     io.sockets.connected[onlineClients[recipient]].emit('updatePoem', userOnePoem, userTwoPoem, finalPoem)
    })
 
-   var poetry = ''
-   socket.on('finalPoem', function(poem){
-    console.log(poem)
-    console.log(poetry += poem)
+
+   socket.on('timer', function(timerUser, timer){
+    console.log(timerUser)
+    var reciepant = timerUser;
+    console.log('-------------this is timer socket boyyyyyy ')
+    console.log(timer)
+    io.sockets.connected[onlineClients[reciepant]].emit('timerStart', timer)
    })
-
-
-
 
     socket.on('error', function(error){
       console.log(error)

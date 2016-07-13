@@ -280,8 +280,7 @@ var Feather = React.createClass({
   displayName: 'Feather',
 
   joinRoom: function () {
-    console.log('this is working');
-    console.log(this.props);
+
     var userTo = this.props.data;
     socket.emit('pm', userTo, 'Would You like to Poem with Me');
   },
@@ -454,7 +453,6 @@ var Modal = React.createClass({
   displayName: 'Modal',
 
   clickYes: function () {
-    console.log('THe modalllll click worked');
     socket.emit('chatAccepted', this.props.user, socket.username);
     socket.emit('pm', this.props.user, 'poemWithMeAccepted');
     this.props.modalClick(true);
@@ -492,7 +490,7 @@ var Room = React.createClass({
   displayName: 'Room',
 
   getInitialState: function () {
-    return { finalPoem: '', userTextArea: '', userTwo: '' };
+    return { finalPoem: '', userTextArea: '', userTwo: '', activateTyping: false };
   },
   getUserTextAreaInput: function (userText, userTyping) {
     var state = this.state;
@@ -500,63 +498,51 @@ var Room = React.createClass({
     var length = userText.length;
     var letter = userText.slice(length - 1, length);
     if (this.props.roomUsers.user1 === userTyping) {
-      console.log(this.props.roomUsers.user1);
-      console.log(userTyping);
-      console.log(state, 'if hit state');
-      console.log('if hit ------------------------------------------------------------');
       state.userTextArea = letter;
       socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem);
       this.setState(state);
     } else {
       state.userTwo = letter;
-      console.log(state, 'state');
-      console.log('else hit ------------------------------------------------------------');
+
       socket.emit('poeming', state.userTwo, this.props.roomUsers, this.state.userTextArea, this.state.finalPoem);
 
       this.setState(state);
     }
   },
+  allowTyping: function (finished) {
+    var state = this.state;
+
+    state.activateTyping = true;
+    this.setState(state);
+  },
   componentDidMount: function () {
     var self = this;
     var state = this.state;
     socket.on('updatePoem', function (userOnePoem, userTwoPoem, finalPoem) {
-      console.log(userOnePoem, userTwoPoem);
-      console.log('finall poem =------==--=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=');
-      console.log(finalPoem, 'this is final POem');
-      console.log(userOnePoem, ' this is useronePoem');
-      console.log(userTwoPoem, ' this is userTwoPoem');
       if (userOnePoem.length >= 1) {
-        console.log('this is the if statement in the Room Component');
-        console.log(state, 'state');
 
         state.finalPoem = state.finalPoem + userOnePoem;
         self.setState(state);
       } else if (userTwoPoem.length >= 1) {
-        console.log(state, 'state in else statement');
-        console.log('this is the else statement in the Room Component');
 
         state.finalPoem = state.finalPoem + userTwoPoem;
         self.setState(state);
       } else {
         var length = state.finalPoem.length;
         var backspace = state.finalPoem.slice(0, length - 1);
-        console.log('backspaceeeeeeeeeeeee', backspace);
-        console.log(backspace);
         state.finalPoem = backspace;
         self.setState(state);
       }
     });
   },
   render: function () {
-    console.log(this.props.roomUsers);
-    console.log(this.state);
-    console.log('--------------------------------------------------------------ROoom componenet');
+    console.log(this.state, 'this is the room component-----------------------------------------------');
     return React.createElement(
       'div',
       { id: 'Room' },
-      React.createElement(RoomUser, { user: this.props.roomUsers, poem: this.state.finalPoem, getUserTextAreaInput: this.getUserTextAreaInput }),
+      React.createElement(RoomUser, { user: this.props.roomUsers, poem: this.state.finalPoem, getUserTextAreaInput: this.getUserTextAreaInput, activeTyping: this.state.activateTyping }),
       React.createElement(PoemArea, { poem: this.state.finalPoem, userText: this.state.userTextArea }),
-      React.createElement(PoemContainer, null)
+      React.createElement(PoemContainer, { activeTyping: this.state.allowTyping, user: this.props.roomUsers })
     );
   }
 });
@@ -576,16 +562,16 @@ var RoomUser = React.createClass({
   handleTyping: function (event, keycode) {
     var user = this.props.user.user1 != socket.username ? this.props.user.user2 : this.props.user.user1;
     var state = this.state;
-    console.log(event);
-    console.log(state);
-    console.log(event.target);
     state.textAreaValue = event.target.value;
     this.setState(state);
-    if (state.keyCode === 8) {
-      console.log('backspace was pressed');
-      this.props.getUserTextAreaInput('', user);
-    } else {
-      this.props.getUserTextAreaInput(event.target.value, user);
+    console.log(this.props.activeTyping, '----------------------------------this.props.activeTyping');
+    if (this.props.activeTyping === true) {
+
+      if (state.keyCode === 8) {
+        this.props.getUserTextAreaInput('', user);
+      } else {
+        this.props.getUserTextAreaInput(event.target.value, user);
+      }
     }
   },
   render: function () {
@@ -639,7 +625,7 @@ var PoemContainer = React.createClass({
         null,
         'This is poem container'
       ),
-      React.createElement(Timer, { start: Date.now() })
+      React.createElement(Timer, { activateTyping: this.props.allowTyping, user: this.props.user })
     );
   }
 });
@@ -648,30 +634,116 @@ var Timer = React.createClass({
   displayName: 'Timer',
 
   getInitialState: function () {
-    return { time: 30 };
+    return { time: 10, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false };
+  },
+  handleClick: function () {
+    // set the interval for timer here
+    var state = this.state;
+    var timerUser = this.props.user.user1 === socket.username ? this.props.user.user2 : this.props.user.user1;
+    socket.emit('timer', timerUser, true);
+    this.timer = setInterval(this.tick, 1000);
+    state.personWhoClickedStart = true;
+    this.setState(state);
   },
   componentDidMount: function () {
-    // set the interval for timer here
-    this.timer = setInterval(this.tick, 1000);
+    var state = this.state;
+    var self = this;
+    socket.on('timerStart', function (timer) {
+      state.goTime = timer;
+      clearInterval(self.timer);
+      clearInterval(self.countdown);
+      self.timer = setInterval(self.tick, 1000);
+      self.setState(state);
+    });
   },
-  componentWillMount: function () {
-    //clear the interval here
-    clearInterval(this.timer);
-  },
-  tick: function () {
-    // calling setState causes the component to be re-rendered
-    if (this.state.time > 0) {
-      this.setState({ time: this.state.time - 1 });
+  checkGameOver: function () {
+    var state = this.state;
+    if (state.turns === 4) {
+      clearInterval(this.timer);
+      clearInterval(this.countdown);
+      console.log('game overrrrrr');
     }
   },
-  render: function () {
+  checkWhosTurn: function () {
+    var state = this.state;
 
+    if (state.personWhoClickedStart === true && state.turns === 0) {
+      this.props.activateTyping(true);
+    }
+  },
+  checkTime: function () {
+    var state = this.state;
+    var previousTurn = this.state.lastTurn;
+    if (state.goTime === true) {
+
+      if (state.time > 0) {
+        state.time--;
+        this.setState(state);
+      } else if (state.time === 0) {
+        console.log('else if in check time is hittinggggggggggggggggg');
+        clearInterval(this.timer);
+        clearInterval(this.countdown);
+        state.time = 10;
+        state.turns++;
+        this.checkWhosTurn();
+        this.countdown = setInterval(this.countDownTick, 1000);
+        // this.props.activateTyping(true)
+        this.setState(state);
+        this.checkGameOver();
+      } else {
+        return null;
+      }
+    }
+  },
+  checkCountdown: function () {
+    var state = this.state;
+    var timerUser = this.props.user.user1 === socket.username ? this.props.user.user2 : this.props.user.user1;
+
+    if (state.countdown === 0) {
+      console.log('if hitttt');
+      clearInterval(this.countdown);
+      clearInterval(this.timer);
+      state.countdown = 3;
+      this.setState(state);
+      console.log(timerUser);
+      this.timer = setInterval(this.tick, 1000);
+    }
+  },
+  countDownTick: function () {
+    var state = this.state;
+    state.countdown--;
+    this.setState(state);
+    this.checkCountdown();
+  },
+  tick: function () {
+    var state = this.state;
+    state.goTime = true;
+    this.setState(state);
+    this.checkTime();
+    // calling setState causes the component to be re-rendered
+  },
+  render: function () {
+    console.log(this.state);
+    console.log('timer --------------------------------------');
     return React.createElement(
-      'p',
+      'div',
       null,
-      ' THis example was started ',
-      this.state.time,
-      ' ago '
+      React.createElement(
+        'button',
+        { id: 'submit', onClick: this.handleClick },
+        'Start'
+      ),
+      React.createElement(
+        'p',
+        null,
+        ' ',
+        this.state.time + ' seconds left'
+      ),
+      React.createElement(
+        'p',
+        null,
+        this.state.countdown + ' seconds player 2 ready'
+      )
     );
   }
 });
