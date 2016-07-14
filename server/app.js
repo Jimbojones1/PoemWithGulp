@@ -153,13 +153,49 @@ io.sockets.on('connect', function(socket){
     io.sockets.connected[onlineClients[reciepant]].emit('timerStart', timer)
    })
 
+   socket.on('whosTurn', function(turnNumber, clickedStart, timerUser){
+    console.log(timerUser, 'this is timeUser', turnNumber, 'turn number', clickedStart, 'clickedStart')
+    var reciepant = timerUser;
+
+        if(turnNumber === 0 && clickedStart === true){
+          console.log('if is hitting ')
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+          }
+          else if(turnNumber === 1 && clickedStart === false){
+           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+          }
+          else if(turnNumber === 1 && clickedStart === true){
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+          }
+          else if(turnNumber === 2 && clickedStart === false){
+           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+          }
+          else if(turnNumber === 2 && clickedStart === true){
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+          }
+          else if(turnNumber === 3 && clickedStart === false){
+           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+          }
+          else if(turnNumber === 3 && clickedStart === true){
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+          }
+        else {
+          io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+        }
+   })
+
+
     socket.on('error', function(error){
       console.log(error)
     })
 
 })// end of socket connection
 
+function whosTurn(turnNumber, clickedStart){
 
+
+
+}
 
 
 server.listen(8080, function(){
