@@ -4,7 +4,8 @@
   "description": "Poem app using sockets React and Gulp",
   "main": "server/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/apps.js"
   },
   "repository": {
     "type": "git",
@@ -24,14 +25,20 @@
     "cors": "^2.7.1",
     "dotenv": "^2.0.0",
     "express": "^4.13.4",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.14.0",
+    "express-socket.io-session": "^1.3.1",
     "gulp": "^3.9.1",
     "gulp-watch": "^4.3.5",
     "mongoose": "^4.4.12",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
+    "superagent": "^2.2.0",
     "vinyl-source-stream": "^1.1.0"
   },
   "devDependencies": {
+    "browser-sync": "^2.14.0",
+    "gulp": "^3.9.1",
     "gulp-less": "^3.0.5"
   }
 }

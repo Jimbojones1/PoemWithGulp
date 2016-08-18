@@ -259,18 +259,18 @@ body {
 }
 
 #Room {
-  background-color: white;
+  background-color: blue;
 
   #RoomUser{
     background-color: #E8C3C3;
     width: 26%;
-    float: left;
+    clear: both;
     margin-right: 1%;
     height: 200px;
   }
   #PoemArea {
     float: left;
-    width: 46%;
+    width: 20%;
     background-color: aliceblue;
     height: 280px;
     padding: 0.5%;
@@ -293,10 +293,33 @@ body {
   margin: 0 auto;
   overflow: auto;
   resize: none;
+  p {
+    margin-bottom: 0 !important;
+    margin: 0;
+  }
+}
+
+textarea {
+  resize: none;
+  overflow: auto;
+}
+
+// Login Modalllllllllllllllllll
+
+.loginForm {
+  width: 10;
+  height: 10%;
+  z-index: 100;
+  position: absolute;
+  left: 0;
+  top: 0;
+
 }
 
 
-
+.dialogClosed {
+  opacity: 0;
+}
 
 
 
