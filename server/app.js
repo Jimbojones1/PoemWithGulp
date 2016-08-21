@@ -8,6 +8,7 @@ require('dotenv').config();
     cors       = require('cors'),
     browserSync = require('browser-sync')
     path = require('path'),
+
     session = require("express-session")({
     secret: "my-secret",
     resave: true,
@@ -37,6 +38,7 @@ var UserModel           = require('./models/UserModel')
 
 //Require Controllers
 var UsersController = require('./controllers/UsersController')
+var PoemsController = require('./controllers/PoemsController')
 
 // Routes
 app.get('/', function(req, res){
@@ -74,17 +76,19 @@ app.get('/burrito', function(req, res){
 
 
 app.use('/user/', UsersController)
+app.use('/poem/', PoemsController)
 
 
 // Socket Server Code
 
 var onlineClients = {},
     usernames     = {};
-io.use(sharedsession(session));
+
+io.use(sharedsession(session, {
+  autoSave: true
+}));
 
 io.sockets.on('connect', function(socket){
-
-
 
   socket.on('disconnect', function(){
     delete usernames[socket.username]
@@ -180,17 +184,45 @@ io.sockets.on('connect', function(socket){
     io.sockets.connected[onlineClients[reciepant]].emit('timerStart', timer)
    })
 
+
+    socket.on('savePoem', function(poem){
+      console.log('why isn')
+      console.log(poem, 'this is in save Poem')
+     socket.handshake.session.reload(function(err) {
+          // session updated
+          console.log(socket.handshake.session, !socket.handshake.session.isLoggedIn, 'this is inside of session reload')
+            if (!socket.handshake.session.isLoggedIn){
+              console.log('session is not logged in, saved poem')
+              socket.emit('login', 'please login to save')
+            }
+            else{
+              console.log('session is logged in save poem')
+              socket.emit('saved', 'the poem was saved')
+            }
+        })
+      console.log(socket.handshake.session, !socket.handshake.session.isLoggedIn, ' this is socket.handshake brother n save poem what is happening')
+
+    })
+
+
+
+
+
+
    socket.on('whosTurn', function(turnNumber, clickedStart, timerUser, socketFrom){
-    console.log(timerUser, 'this is timeUser', turnNumber, 'turn number', clickedStart, 'clickedStart', socketFrom, 'socket From here')
-    var whosTurn = timerUser.user.user1 === socketFrom ? timerUser.user.user2 : timerUser.user.user1;
-    var reciepant = socketFrom === timerUser.user.user1 ? timerUser.user.user1 : timerUser.user.user2;
-    console.log(reciepant, whosTurn)
+
+    if(socketFrom != undefined){
+
+      console.log(timerUser, 'this is timeUser', turnNumber, 'turn number', clickedStart, 'clickedStart', socketFrom, 'socket From here')
+        var whosTurn = timerUser.user.user1 === socketFrom ? timerUser.user.user2 : timerUser.user.user1;
+        var reciepant = socketFrom === timerUser.user.user1 ? timerUser.user.user1 : timerUser.user.user2;
+        console.log(reciepant, whosTurn)
+
         if(turnNumber === 0 && clickedStart === true){
           console.log('if is hitting ')
             io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
             io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
           }
-
           else if(turnNumber === 1 && clickedStart === false){
            io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
@@ -219,25 +251,10 @@ io.sockets.on('connect', function(socket){
           io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, 'Poeming over')
           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false, 'Poeming over')
         }
-   })
-
-
-
-
-
-
-
-    socket.on('savePoem', function(poem){
-
-      if (!socket.handshake.session.isLoggedIn){
-        socket.emit('login', 'please login to save')
       }
-      else{
-        socket.emit('saved', 'the element was saved')
-      }
+   });
 
 
-    })
 
     socket.on('error', function(error){
       console.log(error)

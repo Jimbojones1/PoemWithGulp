@@ -73,7 +73,7 @@ body {
 }
 #Welcome-Container #quote {
   width: 40%;
-  margin-left: 32f%;
+  margin-left: 32%;
   margin-top: 14%;
   background-color: floralwhite;
   padding: 1.3em;
@@ -214,7 +214,10 @@ body {
   margin-right: -13%;
 }
 #Room {
-  background-color: blue;
+  background-color: #D96459;
+  height: 100%;
+  width: 100%;
+  position: absolute;
 }
 #Room #RoomUser {
   background-color: #E8C3C3;
@@ -225,7 +228,7 @@ body {
 }
 #Room #PoemArea {
   float: left;
-  width: 20%;
+  width: 73%;
   background-color: aliceblue;
   height: 280px;
   padding: 0.5%;
@@ -254,14 +257,28 @@ textarea {
   resize: none;
   overflow: auto;
 }
-.loginForm {
-  width: 10;
-  height: 10%;
+#FormContainer {
+  width: 100%;
+  height: 100%;
   z-index: 100;
-  position: absolute;
-  left: 0;
+  position: fixed;
   top: 0;
+  left: 0;
 }
-.dialogClosed {
-  opacity: 0;
+#FormContainer ul li {
+  display: inline-block;
+  margin-right: 4rem;
+}
+#FormContainer #FormModal {
+  width: 47%;
+  height: 23%;
+  margin-left: 19%;
+  z-index: 200;
+  background-color: #fff;
+  margin-top: 14%;
+  border: 2px solid rgba(250, 250, 250, 0.8);
+  box-shadow: 1px 2px 3px 50rem rgba(82, 74, 74, 0.63);
+  padding-top: 2%;
+  padding-left: 7%;
+  padding-right: 3%;
 }

@@ -599,7 +599,7 @@ var PoemContainer = React.createClass({
 
 var Timer = React.createClass({
   getInitialState: function(){
-    return {time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false}
+    return {time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false}
   },
   handleClick: function(){
     // set the interval for timer here
@@ -627,9 +627,17 @@ var Timer = React.createClass({
 
     socket.on('login', function(message){
       console.log(message, ' this is the login socket!')
+      console.log('please login to save' === message, ' this is login something')
+      'please login to save' === message ? state.showLogin = true : state.showLogin = false;
+      self.setState(state)
+      console.log(this.state, 'this is login socket state ')
     })
 
     socket.on('saved', function(message){
+      console.log('saved socket is happening')
+      'the poem was saved' === message ? state.showSaveMessage = true : state.showSaveMessage = false;
+      state.showLogin = false;
+      self.setState(state)
       console.log(message)
     })
 
@@ -660,14 +668,17 @@ var Timer = React.createClass({
              clearInterval(this.countdown)
              state.time = 20;
              state.turns++;
+             if(state.turns < 5){
              socket.emit('whosTurn', state.turns, state.personWhoClickedStart, timerUser, socket.username)
              this.countdown = setInterval(this.countDownTick, 1000)
             // this.props.activateTyping(true)
+
+             }
             this.setState(state);
             this.checkGameOver();
           }
           else {
-            return null;
+            return null
           }
        }
   },
@@ -697,6 +708,17 @@ var Timer = React.createClass({
     this.checkTime();
     // calling setState causes the component to be re-rendered
   },
+  loginClick: function(data){
+    var state = this.state;
+    if (data === "you're in beautiful" ){
+      state.logged = true
+      this.state.showLogin = false
+      this.setState(state);
+    }
+    data === "you're in beautiful" ? state.logged = true : state.logged = false;
+    state.showLogin;
+    this.setState(state)
+  },
   render: function(){
     return (
       <div>
@@ -704,9 +726,11 @@ var Timer = React.createClass({
         <p> {this.state.time + ' seconds left'}</p>
         <p> {this.state.turns + ' this is turn numberrrrr'}</p>
         <p> {this.props.whosTurn}</p>
-        {this.state.turns === 4 && this.state.time === 20 ? <SaveButton poem={this.props.poem}/> : null}
+        {this.state.logged ? socket.username + " you're logged in now you may save" : null}
+        {this.state.showSaveMessage ? " You saved your poem " : null}
+        {this.state.turns === 4 && this.state.time === 20 || this.state.logged ? <SaveButton poem={this.props.poem} saveClick={this.saveClick}/> : null}
         <p>{this.state.countdown + ' seconds player 2 ready'}</p>
-        <LoginForm/>
+        {this.state.showLogin ? <Forms loginClick={this.loginClick}/> : null}
       </div>
       )
   }
@@ -716,9 +740,10 @@ var Timer = React.createClass({
 var SaveButton = React.createClass({
   handleSubmit: function(){
     console.log('this is working')
-    socket.emit('savePoem', this.props.poem)
-
-
+    var poem = this.props.poem;
+    console.log(poem, ' this is poem when i click save button')
+    socket.emit('savePoem', poem)
+    console.log('this hit too')
   },
   render: function(){
     console.log(this.props, 'this is the save Button props' )
@@ -728,6 +753,33 @@ var SaveButton = React.createClass({
   }
 })
 
+
+var Forms = React.createClass({
+  getInitialState: function(){
+    return {login: true }
+  },
+  handleClick: function(event){
+    console.log(event.target.value)
+    var state = this.state;
+    'Login' === event.target.innerText ? state.login = true : state.login = false;
+    this.setState(state);
+    console.log(this.state)
+    console.log(event.target.innerText, typeof event.target.innerText, event.target.innerText === 'Login', event.target.innerText == 'login')
+  },
+  render: function(){
+      return (
+          <div id="FormContainer">
+            <div id="FormModal">
+              <ul>
+                <li onClick={this.handleClick}>Login</li>
+                <li onClick={this.handleClick}>Registration</li>
+              </ul>
+              { this.state.login ? <LoginForm loginClick={this.props.loginClick}/> : <Registration loginClick={this.props.loginClick}/>}
+            </div>
+          </div>
+          )
+       }
+    })
 
 var LoginForm = React.createClass({
   getInitialState: function(){
@@ -747,6 +799,40 @@ var LoginForm = React.createClass({
         .send(self.state)
         .end(function(err, data){
           console.log(data)
+          self.props.loginClick(data.text)
+        })
+
+  },
+  render: function(){
+    return (
+         <form className="loginForm" onSubmit={this.handleSubmit}>
+            <input onChange={this.handleInput} type="text" name="username" placeholder="username" value={this.state.username}/>
+            <input onChange={this.handleInput} type="password" name="password" placeholder="password" value={this.state.password}/>
+            <button onClick={this.handleFormSubmission}>Submit</button>
+          </form>
+      )
+  }
+})
+
+
+var Registration = React.createClass({
+  getInitialState: function(){
+    return {username: '', password: '', passwordTwo: ''}
+  },
+  handleInput: function(event){
+    var state = this.state;
+    state[event.target.name] = event.target.value;
+    this.setState(state)
+    console.log(state)
+    console.log(this.state)
+  },
+  handleFormSubmission: function(e){
+    e.preventDefault();
+       var self = this;
+      request.post('/user/registration')
+        .send(self.state)
+        .end(function(err, data){
+          console.log(data)
         })
   },
   render: function(){
@@ -754,6 +840,7 @@ var LoginForm = React.createClass({
          <form className="loginForm" onSubmit={this.handleSubmit}>
             <input onChange={this.handleInput} type="text" name="username" placeholder="username" value={this.state.username}/>
             <input onChange={this.handleInput} type="password" name="password" placeholder="password" value={this.state.password}/>
+            <input onChange={this.handleInput} type="password" name="passwordTwo" placeholder="password" value={this.state.passwordTwo}/>
             <button onClick={this.handleFormSubmission}>Submit</button>
           </form>
       )

@@ -687,7 +687,7 @@ var Timer = React.createClass({
   displayName: 'Timer',
 
   getInitialState: function () {
-    return { time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false };
+    return { time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false };
   },
   handleClick: function () {
     // set the interval for timer here
@@ -714,9 +714,17 @@ var Timer = React.createClass({
 
     socket.on('login', function (message) {
       console.log(message, ' this is the login socket!');
+      console.log('please login to save' === message, ' this is login something');
+      'please login to save' === message ? state.showLogin = true : state.showLogin = false;
+      self.setState(state);
+      console.log(this.state, 'this is login socket state ');
     });
 
     socket.on('saved', function (message) {
+      console.log('saved socket is happening');
+      'the poem was saved' === message ? state.showSaveMessage = true : state.showSaveMessage = false;
+      state.showLogin = false;
+      self.setState(state);
       console.log(message);
     });
   },
@@ -743,9 +751,11 @@ var Timer = React.createClass({
         clearInterval(this.countdown);
         state.time = 20;
         state.turns++;
-        socket.emit('whosTurn', state.turns, state.personWhoClickedStart, timerUser, socket.username);
-        this.countdown = setInterval(this.countDownTick, 1000);
-        // this.props.activateTyping(true)
+        if (state.turns < 5) {
+          socket.emit('whosTurn', state.turns, state.personWhoClickedStart, timerUser, socket.username);
+          this.countdown = setInterval(this.countDownTick, 1000);
+          // this.props.activateTyping(true)
+        }
         this.setState(state);
         this.checkGameOver();
       } else {
@@ -779,6 +789,17 @@ var Timer = React.createClass({
     this.checkTime();
     // calling setState causes the component to be re-rendered
   },
+  loginClick: function (data) {
+    var state = this.state;
+    if (data === "you're in beautiful") {
+      state.logged = true;
+      this.state.showLogin = false;
+      this.setState(state);
+    }
+    data === "you're in beautiful" ? state.logged = true : state.logged = false;
+    state.showLogin;
+    this.setState(state);
+  },
   render: function () {
     return React.createElement(
       'div',
@@ -806,13 +827,15 @@ var Timer = React.createClass({
         ' ',
         this.props.whosTurn
       ),
-      this.state.turns === 4 && this.state.time === 20 ? React.createElement(SaveButton, { poem: this.props.poem }) : null,
+      this.state.logged ? socket.username + " you're logged in now you may save" : null,
+      this.state.showSaveMessage ? " You saved your poem " : null,
+      this.state.turns === 4 && this.state.time === 20 || this.state.logged ? React.createElement(SaveButton, { poem: this.props.poem, saveClick: this.saveClick }) : null,
       React.createElement(
         'p',
         null,
         this.state.countdown + ' seconds player 2 ready'
       ),
-      React.createElement(LoginForm, null)
+      this.state.showLogin ? React.createElement(Forms, { loginClick: this.loginClick }) : null
     );
   }
 });
@@ -822,7 +845,10 @@ var SaveButton = React.createClass({
 
   handleSubmit: function () {
     console.log('this is working');
-    socket.emit('savePoem', this.props.poem);
+    var poem = this.props.poem;
+    console.log(poem, ' this is poem when i click save button');
+    socket.emit('savePoem', poem);
+    console.log('this hit too');
   },
   render: function () {
     console.log(this.props, 'this is the save Button props');
@@ -830,6 +856,47 @@ var SaveButton = React.createClass({
       'button',
       { onClick: this.handleSubmit },
       'Save'
+    );
+  }
+});
+
+var Forms = React.createClass({
+  displayName: 'Forms',
+
+  getInitialState: function () {
+    return { login: true };
+  },
+  handleClick: function (event) {
+    console.log(event.target.value);
+    var state = this.state;
+    'Login' === event.target.innerText ? state.login = true : state.login = false;
+    this.setState(state);
+    console.log(this.state);
+    console.log(event.target.innerText, typeof event.target.innerText, event.target.innerText === 'Login', event.target.innerText == 'login');
+  },
+  render: function () {
+    return React.createElement(
+      'div',
+      { id: 'FormContainer' },
+      React.createElement(
+        'div',
+        { id: 'FormModal' },
+        React.createElement(
+          'ul',
+          null,
+          React.createElement(
+            'li',
+            { onClick: this.handleClick },
+            'Login'
+          ),
+          React.createElement(
+            'li',
+            { onClick: this.handleClick },
+            'Registration'
+          )
+        ),
+        this.state.login ? React.createElement(LoginForm, { loginClick: this.props.loginClick }) : React.createElement(Registration, { loginClick: this.props.loginClick })
+      )
     );
   }
 });
@@ -852,6 +919,7 @@ var LoginForm = React.createClass({
     var self = this;
     request.post('/user').send(self.state).end(function (err, data) {
       console.log(data);
+      self.props.loginClick(data.text);
     });
   },
   render: function () {
@@ -860,6 +928,42 @@ var LoginForm = React.createClass({
       { className: 'loginForm', onSubmit: this.handleSubmit },
       React.createElement('input', { onChange: this.handleInput, type: 'text', name: 'username', placeholder: 'username', value: this.state.username }),
       React.createElement('input', { onChange: this.handleInput, type: 'password', name: 'password', placeholder: 'password', value: this.state.password }),
+      React.createElement(
+        'button',
+        { onClick: this.handleFormSubmission },
+        'Submit'
+      )
+    );
+  }
+});
+
+var Registration = React.createClass({
+  displayName: 'Registration',
+
+  getInitialState: function () {
+    return { username: '', password: '', passwordTwo: '' };
+  },
+  handleInput: function (event) {
+    var state = this.state;
+    state[event.target.name] = event.target.value;
+    this.setState(state);
+    console.log(state);
+    console.log(this.state);
+  },
+  handleFormSubmission: function (e) {
+    e.preventDefault();
+    var self = this;
+    request.post('/user/registration').send(self.state).end(function (err, data) {
+      console.log(data);
+    });
+  },
+  render: function () {
+    return React.createElement(
+      'form',
+      { className: 'loginForm', onSubmit: this.handleSubmit },
+      React.createElement('input', { onChange: this.handleInput, type: 'text', name: 'username', placeholder: 'username', value: this.state.username }),
+      React.createElement('input', { onChange: this.handleInput, type: 'password', name: 'password', placeholder: 'password', value: this.state.password }),
+      React.createElement('input', { onChange: this.handleInput, type: 'password', name: 'passwordTwo', placeholder: 'password', value: this.state.passwordTwo }),
       React.createElement(
         'button',
         { onClick: this.handleFormSubmission },
