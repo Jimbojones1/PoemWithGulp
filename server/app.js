@@ -8,7 +8,7 @@ require('dotenv').config();
     cors       = require('cors'),
     browserSync = require('browser-sync')
     path = require('path'),
-
+     bcrypt  = require('bcrypt'),
     session = require("express-session")({
     secret: "my-secret",
     resave: true,
@@ -33,7 +33,8 @@ require('./db/db')
 
 // Requiring Models
 var PrivateMessageModel = require('./models/PrivateMessageModel')
-var UserModel           = require('./models/UserModel')
+var User                = require('./models/UserModel')
+
 
 
 //Require Controllers
@@ -196,12 +197,28 @@ io.sockets.on('connect', function(socket){
               socket.emit('login', 'please login to save')
             }
             else{
+              var userUpdateObject = {};
+              userUpdateObject.poems = [];
+              userUpdateObject.poems.push({
+                timestamp: Date.now(),
+                poemers: ['jim', socket.handshake.session.username],
+                poem: poem
+
+              })
               console.log('session is logged in save poem')
-              socket.emit('saved', 'the poem was saved')
+              User.findByIdAndUpdate(socket.handshake.session.userId, userUpdateObject, {new: true}, function(err, user){
+                if (err){
+                  console.log('there was an error in the database')
+                }
+                else {
+                  console.log(user, ' this is the user object in the save session socket')
+                  socket.emit('saved', 'the poem was saved')
+                }
+
+              })
+
             }
         })
-      console.log(socket.handshake.session, !socket.handshake.session.isLoggedIn, ' this is socket.handshake brother n save poem what is happening')
-
     })
 
 

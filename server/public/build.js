@@ -494,14 +494,11 @@ var Room = React.createClass({
   },
   getUserTextAreaInput: function (userText, userTyping) {
     var state = this.state;
-    console.log(state);
-    console.log(userText, 'this is user text');
     var length = userText.length;
     var letter = userText.slice(length - 1, length);
 
     if (state.activateTyping === true) {
 
-      console.log(length, 'this is length', letter, 'this is letter');
       if (this.props.roomUsers.user1 === userTyping) {
 
         if (userText === '<br>') {
@@ -551,12 +548,11 @@ var Room = React.createClass({
         var backspace = state.finalPoem.slice(0, length - 1);
 
         if (backspace.endsWith('<br')) {
-          console.log('if statement is hitting final poem ends with br');
+
           backspace = state.finalPoem.slice(0, length - 4);
           state.finalPoem = backspace;
           self.setState(state);
         } else {
-          console.log('esle is hitting in final poem br');
           state.finalPoem = backspace;
           self.setState(state);
         }
@@ -564,7 +560,6 @@ var Room = React.createClass({
     });
 
     socket.on('whosTurn', function (typeDude, whosTurn) {
-      console.log('whos turn is happening : ) ', typeDude);
       state.activateTyping = typeDude;
       state.whosTurn = whosTurn;
       self.setState(state);
@@ -580,14 +575,6 @@ var Room = React.createClass({
     );
   }
 });
-
-// var Break = react.createClass({
-//   render: function(){
-//     return (
-//       <br>
-//       )
-//   }
-// })
 
 var RoomUser = React.createClass({
   displayName: 'RoomUser',
@@ -605,12 +592,10 @@ var RoomUser = React.createClass({
     var state = this.state;
     state.textAreaValue = event.target.value;
     this.setState(state);
-    console.log(state, '----------------------------------activatTyping props in room user');
 
     if (state.keyCode === 8) {
       this.props.getUserTextAreaInput('', user);
     } else if (state.keyCode === 13) {
-      console.log(state, 'this is key code 13');
       this.props.getUserTextAreaInput('<br>', user);
     } else {
       this.props.getUserTextAreaInput(event.target.value, user);
@@ -687,7 +672,7 @@ var Timer = React.createClass({
   displayName: 'Timer',
 
   getInitialState: function () {
-    return { time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false };
+    return { time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false, errorMessage: '' };
   },
   handleClick: function () {
     // set the interval for timer here
@@ -791,14 +776,24 @@ var Timer = React.createClass({
   },
   loginClick: function (data) {
     var state = this.state;
-    if (data === "you're in beautiful") {
+    if (data === "you're in beautiful" || data === "Thankyou, you have successfully registered.") {
+      console.log('if inside login click is happening');
       state.logged = true;
       this.state.showLogin = false;
-      this.setState(state);
+    } else {
+      state.errorMessage = data;
     }
-    data === "you're in beautiful" ? state.logged = true : state.logged = false;
-    state.showLogin;
     this.setState(state);
+  },
+  removeErrorMessage: function (userclicked) {
+    var state = this.state;
+    if (userclicked) {
+      state.errorMessage = '';
+      console.log('userclicked happenend');
+      this.setState(state);
+    } else {
+      return null;
+    }
   },
   render: function () {
     return React.createElement(
@@ -829,13 +824,13 @@ var Timer = React.createClass({
       ),
       this.state.logged ? socket.username + " you're logged in now you may save" : null,
       this.state.showSaveMessage ? " You saved your poem " : null,
-      this.state.turns === 4 && this.state.time === 20 || this.state.logged ? React.createElement(SaveButton, { poem: this.props.poem, saveClick: this.saveClick }) : null,
+      this.state.turns === 4 && this.state.time === 20 || this.state.logged ? React.createElement(SaveButton, { poem: this.props.poem }) : null,
       React.createElement(
         'p',
         null,
         this.state.countdown + ' seconds player 2 ready'
       ),
-      this.state.showLogin ? React.createElement(Forms, { loginClick: this.loginClick }) : null
+      this.state.showLogin ? React.createElement(Forms, { loginClick: this.loginClick, errorMessage: this.state.errorMessage, removeErrorMessage: this.removeErrorMessage }) : null
     );
   }
 });
@@ -868,6 +863,7 @@ var Forms = React.createClass({
   },
   handleClick: function (event) {
     console.log(event.target.value);
+    this.props.removeErrorMessage(true);
     var state = this.state;
     'Login' === event.target.innerText ? state.login = true : state.login = false;
     this.setState(state);
@@ -894,6 +890,12 @@ var Forms = React.createClass({
             { onClick: this.handleClick },
             'Registration'
           )
+        ),
+        React.createElement(
+          'span',
+          null,
+          this.props.errorMessage.length > 1 ? this.props.errorMessage : null,
+          ' '
         ),
         this.state.login ? React.createElement(LoginForm, { loginClick: this.props.loginClick }) : React.createElement(Registration, { loginClick: this.props.loginClick })
       )
@@ -954,6 +956,7 @@ var Registration = React.createClass({
     e.preventDefault();
     var self = this;
     request.post('/user/registration').send(self.state).end(function (err, data) {
+      self.props.loginClick(data.text);
       console.log(data);
     });
   },
