@@ -558,7 +558,13 @@ var PoemArea = React.createClass({
     var re = new RegExp("<br>");
     var poemSplit = this.props.poem.split(re)
     var finalPoem = poemSplit.map(function(words, i){
-      return <p key={i}>{words}<br/></p>
+      if(i === poemSplit.length - 1){
+        return <p key={i}>{words} <span className="blinking-cursor">|</span></p>
+      }
+      else{
+        return <p key={i}>{words}</p>
+      }
+
     })
     return (
       <div id="PoemArea">
