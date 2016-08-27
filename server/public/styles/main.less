@@ -266,13 +266,13 @@ body {
   #RoomUser{
     background-color: #E8C3C3;
     width: 26%;
-    clear: both;
+    float: left;
     margin-right: 1%;
     height: 200px;
   }
   #PoemArea {
     float: left;
-    width: 73%;
+    width: 40%;
     background-color: aliceblue;
     height: 280px;
     padding: 0.5%;
@@ -303,8 +303,20 @@ body {
 
 textarea {
   resize: none;
+  width: 75%;
+  height: 91.239%;
+  position: absolute;
+  background: transparent;
+  color: transparent;
+  border: none !important;
   overflow: auto;
+  outline: none !important;
+
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
 }
+
 
 // Login Modalllllllllllllllllll
 
@@ -328,16 +340,23 @@ textarea {
     }
     #FormModal {
     width: 47%;
-    height: 23%;
+    height: 35%;
     margin-left: 19%;
     z-index: 200;
     background-color: #fff;
     margin-top: 14%;
     border: 2px solid rgba(250, 250, 250, 0.8);
     box-shadow: 1px 2px 3px 50rem rgba(82, 74, 74, 0.63);
-    padding-top: 2%;
-    padding-left: 7%;
-    padding-right: 3%;
+    padding-top: 5%;
+    padding-left: 12%;
+    padding-right: 8%;
+
+    span{
+      color: @red;
+    }
+    input {
+      margin-right: 3%;
+    }
   }
 }
 

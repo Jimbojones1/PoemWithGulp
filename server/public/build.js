@@ -569,9 +569,9 @@ var Room = React.createClass({
     return React.createElement(
       'div',
       { id: 'Room' },
+      React.createElement(RoomUser, { user: this.props.roomUsers, poem: this.state.finalPoem, getUserTextAreaInput: this.getUserTextAreaInput, activeTyping: this.state.activateTyping }),
       React.createElement(PoemArea, { poem: this.state.finalPoem, userText: this.state.userTextArea }),
-      React.createElement(PoemContainer, { poem: this.state.finalPoem, activateTyping: this.allowTyping, user: this.props.roomUsers, whosTypingActive: this.state.activateTyping, whosTurn: this.state.whosTurn }),
-      React.createElement(RoomUser, { user: this.props.roomUsers, poem: this.state.finalPoem, getUserTextAreaInput: this.getUserTextAreaInput, activeTyping: this.state.activateTyping })
+      React.createElement(PoemContainer, { poem: this.state.finalPoem, activateTyping: this.allowTyping, user: this.props.roomUsers, whosTypingActive: this.state.activateTyping, whosTurn: this.state.whosTurn })
     );
   }
 });
@@ -614,7 +614,7 @@ var RoomUser = React.createClass({
         null,
         this.props.user.user1
       ),
-      React.createElement('textarea', { type: 'text', placeholder: 'Username Biotch', onChange: this.handleTyping, onKeyDown: this.keyDown, value: this.state.textAreaValue })
+      React.createElement('textarea', { autoFocus: 'true', spellCheck: 'false', type: 'text', onChange: this.handleTyping, onKeyDown: this.keyDown, value: this.state.textAreaValue })
     );
   }
 });

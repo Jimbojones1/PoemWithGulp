@@ -506,9 +506,9 @@ var Room = React.createClass({
   render: function(){
     return (
       <div id="Room">
+        <RoomUser user={this.props.roomUsers} poem={this.state.finalPoem} getUserTextAreaInput={this.getUserTextAreaInput} activeTyping={this.state.activateTyping}/>
         <PoemArea poem={this.state.finalPoem} userText={this.state.userTextArea}/>
         <PoemContainer poem={this.state.finalPoem} activateTyping={this.allowTyping} user={this.props.roomUsers} whosTypingActive={this.state.activateTyping} whosTurn={this.state.whosTurn}/>
-        <RoomUser user={this.props.roomUsers} poem={this.state.finalPoem} getUserTextAreaInput={this.getUserTextAreaInput} activeTyping={this.state.activateTyping}/>
       </div>
      )
     }
@@ -545,7 +545,7 @@ var RoomUser = React.createClass({
     return (
       <div id="RoomUser">
         {this.props.user.user1 != socket.username ? <h4>{this.props.user.user2}</h4> : <h4>{this.props.user.user1}</h4>}
-        <textarea type="text" placeholder="Username Biotch" onChange={this.handleTyping} onKeyDown={this.keyDown} value={this.state.textAreaValue}/>
+        <textarea autoFocus="true" spellCheck="false" type="text" onChange={this.handleTyping} onKeyDown={this.keyDown} value={this.state.textAreaValue}/>
       </div>
       )
     }
