@@ -496,7 +496,7 @@ var Room = React.createClass({
     var state = this.state;
     var length = userText.length;
     var letter = userText.slice(length - 1, length);
-
+    console.log(letter, ' this is letter');
     if (state.activateTyping === true) {
 
       if (this.props.roomUsers.user1 === userTyping) {
@@ -524,7 +524,6 @@ var Room = React.createClass({
   },
   allowTyping: function (finished) {
     var state = this.state;
-    console.log(finished, 'allow typing variableeeeeeeeeeeeee');
     state.activateTyping = finished;
     this.setState(state);
   },
