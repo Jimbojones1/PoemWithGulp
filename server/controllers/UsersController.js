@@ -22,8 +22,12 @@ router.post('/', function(req, res, next){
               res.send('Database error')
             }
             else if(result){
+              console.log(result, ' this is resulttttt in login')
               console.log('true happened in bcrypt compare')
               req.session.isLoggedIn = true;
+              req.session.userId = user._id
+              // socket.username = result.username;
+              console.log(req.session)
               res.send("you're in beautiful")
             }
             else{
@@ -89,3 +93,25 @@ router.post('/registration', function(req, res, next){
 
 
 module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

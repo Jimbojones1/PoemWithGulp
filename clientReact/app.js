@@ -262,11 +262,8 @@ var Container = React.createClass({
    })
 
   var PrivateMessageButton = React.createClass({
-    removeClick: function(){
+    removeClick: function(user){
       this.props.removeBox(user);
-
-
-
     },
     render: function(){
       return (
@@ -385,7 +382,7 @@ var WelcomeContainer = React.createClass({
           Hold Infinity in the palm of your hand
           And Eternity in an hour."
         </blockquote>
-        <quote>~William Blake</quote>
+        <span id="author">~William Blake</span>
       </div>
       )
   3 }
@@ -543,7 +540,7 @@ var RoomUser = React.createClass({
   render: function(){
     return (
       <div id="RoomUser">
-        {this.props.user.user1 != socket.username ? <h4>{this.props.user.user2}</h4> : <h4>{this.props.user.user1}</h4>}
+        {this.props.user.user1 != socket.username ? <h4>{"Let's poem" + this.props.user.user2}</h4> : <h4>{"Let's poem " + this.props.user.user1}</h4>}
         <textarea autoFocus="true" spellCheck="false" type="text" onChange={this.handleTyping} onKeyDown={this.keyDown} value={this.state.textAreaValue}/>
       </div>
       )
@@ -567,7 +564,7 @@ var PoemArea = React.createClass({
     })
     return (
       <div id="PoemArea">
-          <h4>This is the Poem Area </h4>
+          <h4></h4>
           <div id="poemsArea">{finalPoem}</div>
       </div>
       )
@@ -578,7 +575,6 @@ var PoemContainer = React.createClass({
   render: function(){
     return (
       <div id="peomContainer">
-        <p>This is poem container</p>
         <Timer poem={this.props.poem} activateTyping={this.props.activateTyping} user={this.props.user} whosTurn={this.props.whosTurn} whosTypingActive={this.props.whosTypingActive}/>
       </div>
       )
@@ -588,7 +584,7 @@ var PoemContainer = React.createClass({
 
 var Timer = React.createClass({
   getInitialState: function(){
-    return {time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false, errorMessage: ''}
+    return {time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false, errorMessage: '', showSave: true, showStart: true}
   },
   handleClick: function(){
     // set the interval for timer here
@@ -598,8 +594,9 @@ var Timer = React.createClass({
     socket.emit('timer', timerUser, true);
     this.timer = setInterval(this.tick, 1000)
     state.personWhoClickedStart = true;
+    state.showStart = false;
     state.whosTurn = whoClicked;
-    socket.emit('whosTurn', state.turns, state.personWhoClickedStart, this.props, socket.username)
+    socket.emit('whosTurn', state.turns, state.personWhoClickedStart, this.props, socket.username, state.showStart)
     this.setState(state);
 
   },
@@ -622,10 +619,17 @@ var Timer = React.createClass({
       console.log(this.state, 'this is login socket state ')
     })
 
+    socket.on('someOneClickedStart', function(clickedStart){
+      console.log('this is someOneClickedStart event emitter')
+      state.showStart = clickedStart;
+      self.setState(state);
+    })
+
     socket.on('saved', function(message){
       console.log('saved socket is happening')
       'the poem was saved' === message ? state.showSaveMessage = true : state.showSaveMessage = false;
       state.showLogin = false;
+      state.showSave = false;
       self.setState(state)
       console.log(message)
     })
@@ -723,15 +727,20 @@ var Timer = React.createClass({
   render: function(){
     return (
       <div>
-        <button id="submit" onClick={this.handleClick}>Start</button>
-        <p> {this.state.time + ' seconds left'}</p>
-        <p> {this.state.turns + ' this is turn numberrrrr'}</p>
-        <p> {this.props.whosTurn}</p>
-        {this.state.logged ? socket.username + " you're logged in now you may save" : null}
+        {this.state.showStart ? <button id="submit" onClick={this.handleClick}>Start</button> : null}
+        {this.state.turns === 4 && this.state.time === 20 || this.state.logged && this.state.showSave ? <SaveButton poem={this.props.poem}/> : null}
         {this.state.showSaveMessage ? " You saved your poem " : null}
-        {this.state.turns === 4 && this.state.time === 20 || this.state.logged ? <SaveButton poem={this.props.poem}/> : null}
-        <p>{this.state.countdown + ' seconds player 2 ready'}</p>
+        {this.state.logged ? socket.username + " you're logged in now you may save": null}
         {this.state.showLogin ? <Forms loginClick={this.loginClick} errorMessage={this.state.errorMessage} removeErrorMessage={this.removeErrorMessage}/> : null}
+        <hr/>
+        <p id="timer"> {this.state.time + ' seconds left'}</p>
+        <hr/>
+        <p> {'Turn number: ' + this.state.turns}</p>
+        <hr/>
+        <p> {this.props.whosTurn + " it's your turn"}</p>
+        <hr/>
+        <p>{this.state.countdown + ' seconds player 2 ready'}</p>
+        <hr/>
       </div>
       )
   }
@@ -749,7 +758,7 @@ var SaveButton = React.createClass({
   render: function(){
     console.log(this.props, 'this is the save Button props' )
     return (
-      <button onClick={this.handleSubmit}>Save</button>
+      <button id="saveButton" onClick={this.handleSubmit}>Save</button>
       )
   }
 })

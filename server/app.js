@@ -8,7 +8,7 @@ require('dotenv').config();
     cors       = require('cors'),
     browserSync = require('browser-sync')
     path = require('path'),
-     bcrypt  = require('bcrypt'),
+    bcrypt  = require('bcrypt'),
     session = require("express-session")({
     secret: "my-secret",
     resave: true,
@@ -193,7 +193,7 @@ io.sockets.on('connect', function(socket){
           // session updated
           console.log(socket.handshake.session, !socket.handshake.session.isLoggedIn, 'this is inside of session reload')
             if (!socket.handshake.session.isLoggedIn){
-              console.log('session is not logged in, saved poem')
+              console.log('session is not logged in, saved poem function', socket.handshake.session)
               socket.emit('login', 'please login to save')
             }
             else{
@@ -205,13 +205,17 @@ io.sockets.on('connect', function(socket){
                 poem: poem
 
               })
-              console.log('session is logged in save poem')
+              console.log('session is logged in save poem', socket.handshake.session)
               User.findByIdAndUpdate(socket.handshake.session.userId, userUpdateObject, {new: true}, function(err, user){
                 if (err){
                   console.log('there was an error in the database')
                 }
                 else {
-                  console.log(user, ' this is the user object in the save session socket')
+                  console.log('------------------------------------------------------------------------')
+                  console.log(socket.handshake.session.userId)
+                  socket.handshake.session.username = user.username;
+                  console.log(user, ' this is the user object in the save session socket', socket.handshake.session.username, user.username)
+                  console.log('------------------------------------------------------------------------')
                   socket.emit('saved', 'the poem was saved')
                 }
 
@@ -226,7 +230,7 @@ io.sockets.on('connect', function(socket){
 
 
 
-   socket.on('whosTurn', function(turnNumber, clickedStart, timerUser, socketFrom){
+   socket.on('whosTurn', function(turnNumber, clickedStart, timerUser, socketFrom, showStart){
 
     if(socketFrom != undefined){
 
@@ -239,6 +243,8 @@ io.sockets.on('connect', function(socket){
           console.log('if is hitting ')
             io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
             io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
+            io.sockets.connected[onlineClients[reciepant]].emit('someOneClickedStart', false)
+            io.sockets.connected[onlineClients[whosTurn]].emit('someOneClickedStart', false)
           }
           else if(turnNumber === 1 && clickedStart === false){
            io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)

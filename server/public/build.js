@@ -297,7 +297,7 @@ var Feather = React.createClass({
 var PrivateMessageButton = React.createClass({
   displayName: 'PrivateMessageButton',
 
-  removeClick: function () {
+  removeClick: function (user) {
     this.props.removeBox(user);
   },
   render: function () {
@@ -438,8 +438,8 @@ var WelcomeContainer = React.createClass({
         '"To see a World in a Grain of Sand And a Heaven in a Wild Flower, Hold Infinity in the palm of your hand And Eternity in an hour."'
       ),
       React.createElement(
-        'quote',
-        null,
+        'span',
+        { id: 'author' },
         '~William Blake'
       )
     );
@@ -607,11 +607,11 @@ var RoomUser = React.createClass({
       this.props.user.user1 != socket.username ? React.createElement(
         'h4',
         null,
-        this.props.user.user2
+        "Let's poem" + this.props.user.user2
       ) : React.createElement(
         'h4',
         null,
-        this.props.user.user1
+        "Let's poem " + this.props.user.user1
       ),
       React.createElement('textarea', { autoFocus: 'true', spellCheck: 'false', type: 'text', onChange: this.handleTyping, onKeyDown: this.keyDown, value: this.state.textAreaValue })
     );
@@ -649,11 +649,7 @@ var PoemArea = React.createClass({
     return React.createElement(
       'div',
       { id: 'PoemArea' },
-      React.createElement(
-        'h4',
-        null,
-        'This is the Poem Area '
-      ),
+      React.createElement('h4', null),
       React.createElement(
         'div',
         { id: 'poemsArea' },
@@ -670,11 +666,6 @@ var PoemContainer = React.createClass({
     return React.createElement(
       'div',
       { id: 'peomContainer' },
-      React.createElement(
-        'p',
-        null,
-        'This is poem container'
-      ),
       React.createElement(Timer, { poem: this.props.poem, activateTyping: this.props.activateTyping, user: this.props.user, whosTurn: this.props.whosTurn, whosTypingActive: this.props.whosTypingActive })
     );
   }
@@ -684,7 +675,7 @@ var Timer = React.createClass({
   displayName: 'Timer',
 
   getInitialState: function () {
-    return { time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false, errorMessage: '' };
+    return { time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false, errorMessage: '', showSave: true, showStart: true };
   },
   handleClick: function () {
     // set the interval for timer here
@@ -694,8 +685,9 @@ var Timer = React.createClass({
     socket.emit('timer', timerUser, true);
     this.timer = setInterval(this.tick, 1000);
     state.personWhoClickedStart = true;
+    state.showStart = false;
     state.whosTurn = whoClicked;
-    socket.emit('whosTurn', state.turns, state.personWhoClickedStart, this.props, socket.username);
+    socket.emit('whosTurn', state.turns, state.personWhoClickedStart, this.props, socket.username, state.showStart);
     this.setState(state);
   },
   componentDidMount: function () {
@@ -717,10 +709,17 @@ var Timer = React.createClass({
       console.log(this.state, 'this is login socket state ');
     });
 
+    socket.on('someOneClickedStart', function (clickedStart) {
+      console.log('this is someOneClickedStart event emitter');
+      state.showStart = clickedStart;
+      self.setState(state);
+    });
+
     socket.on('saved', function (message) {
       console.log('saved socket is happening');
       'the poem was saved' === message ? state.showSaveMessage = true : state.showSaveMessage = false;
       state.showLogin = false;
+      state.showSave = false;
       self.setState(state);
       console.log(message);
     });
@@ -811,38 +810,43 @@ var Timer = React.createClass({
     return React.createElement(
       'div',
       null,
-      React.createElement(
+      this.state.showStart ? React.createElement(
         'button',
         { id: 'submit', onClick: this.handleClick },
         'Start'
-      ),
+      ) : null,
+      this.state.turns === 4 && this.state.time === 20 || this.state.logged && this.state.showSave ? React.createElement(SaveButton, { poem: this.props.poem }) : null,
+      this.state.showSaveMessage ? " You saved your poem " : null,
+      this.state.logged ? socket.username + " you're logged in now you may save" : null,
+      this.state.showLogin ? React.createElement(Forms, { loginClick: this.loginClick, errorMessage: this.state.errorMessage, removeErrorMessage: this.removeErrorMessage }) : null,
+      React.createElement('hr', null),
       React.createElement(
         'p',
-        null,
+        { id: 'timer' },
         ' ',
         this.state.time + ' seconds left'
       ),
+      React.createElement('hr', null),
       React.createElement(
         'p',
         null,
         ' ',
-        this.state.turns + ' this is turn numberrrrr'
+        'Turn number: ' + this.state.turns
       ),
+      React.createElement('hr', null),
       React.createElement(
         'p',
         null,
         ' ',
-        this.props.whosTurn
+        this.props.whosTurn + " it's your turn"
       ),
-      this.state.logged ? socket.username + " you're logged in now you may save" : null,
-      this.state.showSaveMessage ? " You saved your poem " : null,
-      this.state.turns === 4 && this.state.time === 20 || this.state.logged ? React.createElement(SaveButton, { poem: this.props.poem }) : null,
+      React.createElement('hr', null),
       React.createElement(
         'p',
         null,
         this.state.countdown + ' seconds player 2 ready'
       ),
-      this.state.showLogin ? React.createElement(Forms, { loginClick: this.loginClick, errorMessage: this.state.errorMessage, removeErrorMessage: this.removeErrorMessage }) : null
+      React.createElement('hr', null)
     );
   }
 });
@@ -861,7 +865,7 @@ var SaveButton = React.createClass({
     console.log(this.props, 'this is the save Button props');
     return React.createElement(
       'button',
-      { onClick: this.handleSubmit },
+      { id: 'saveButton', onClick: this.handleSubmit },
       'Save'
     );
   }

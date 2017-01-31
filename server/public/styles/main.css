@@ -1,3 +1,6 @@
+@-ms-viewport {
+  width: device-width;
+}
 html,
 body {
   width: 100%;
@@ -9,10 +12,12 @@ body {
   background-color: #D96459;
 }
 .username {
-  margin-left: 40%;
-  margin-top: 25%;
-  margin-right: 40%;
-  position: fixed;
+  width: 100%;
+  margin: 0 auto;
+}
+.username input {
+  margin-left: 42%;
+  margin-top: 18%;
 }
 #main-page-header {
   background-color: #F2AE72;
@@ -82,16 +87,6 @@ body {
   font-size: 1.1em;
   box-shadow: inset 0 0 1px 1px #F2AE72;
 }
-#Welcome-Container quote {
-  float: right;
-  margin-right: 8%;
-  color: black;
-  box-shadow: inset 0 0 12px -1px #F2AE72;
-  padding: 0.5em;
-  margin-top: -0.8%;
-  background-color: floralwhite;
-  border-radius: 11%;
-}
 #Welcome-Container p {
   background: floralwhite;
   margin-bottom: -9%;
@@ -103,9 +98,14 @@ body {
   border-radius: 19%;
   box-shadow: inset 0 0 1px 1px #F2AE72;
 }
+@media (min-width: 1200px) {
+  #author {
+    float: right;
+    margin-right: 19%;
+  }
+}
 #prvBoxarea {
-  width: 60%;
-  overflow-x: auto;
+  width: 68%;
   position: absolute;
   bottom: 0;
   right: 0;
@@ -114,8 +114,8 @@ body {
 .PrivateMessageBox {
   border: 1px solid #F2AE72;
   float: right;
-  width: 25%;
   margin-right: 1.9%;
+  margin-left: 0;
   height: 240px;
   box-shadow: 0 8px 6px -6px black;
 }
@@ -189,6 +189,11 @@ body {
   color: #8C4646;
   font-weight: bold;
 }
+@media (min-width: 1200px) {
+  .PrivateMessageBox {
+    width: 25.666667% !important;
+  }
+}
 #dialog {
   width: 100%;
   height: 100%;
@@ -220,26 +225,45 @@ body {
   position: absolute;
 }
 #Room #RoomUser {
-  background-color: #E8C3C3;
   width: 26%;
   float: left;
   margin-right: 1%;
   height: 200px;
 }
+#Room #RoomUser h4 {
+  margin-left: 13%;
+  margin-top: 7%;
+}
 #Room #PoemArea {
   float: left;
   width: 40%;
-  background-color: aliceblue;
-  height: 280px;
+  background-color: floralwhite;
+  height: 98%;
   padding: 0.5%;
+  padding-top: 0;
+  padding-bottom: 0;
   overflow: auto;
   resize: none;
   outline: none;
+  border-radius: 20%;
+  border: 3px solid #8C4646;
 }
 #Room #peomContainer {
   float: right;
-  background-color: beige;
   width: 25%;
+}
+#Room #peomContainer #timer {
+  width: 58%;
+  margin-bottom: 0px;
+}
+#Room #peomContainer button {
+  margin-left: 9%;
+  margin-top: 20%;
+}
+#Room #peomContainer #saveButton {
+  margin-top: 14%;
+  margin-left: 0;
+  margin-right: 5%;
 }
 #poemsArea {
   width: 100%;
@@ -256,10 +280,11 @@ body {
 textarea {
   resize: none;
   width: 75%;
-  height: 91.239%;
+  height: 66.239%;
   position: absolute;
   background: transparent;
   color: transparent;
+  top: 0;
   border: none !important;
   overflow: auto;
   outline: none !important;
@@ -354,3 +379,7 @@ textarea {
 #FormContainer #FormModal input {
   margin-right: 3%;
 }
+#FormContainer #FormModal button {
+  margin: 0;
+}
+/* Portrait */
