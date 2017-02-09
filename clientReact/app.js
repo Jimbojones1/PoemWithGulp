@@ -7,10 +7,14 @@ var request = require('superagent');
 
 var Container = React.createClass({
     getInitialState: function(){
-      return {logged: false, loggedHeader: false, users: [], chatBoxes: [], chatOpen: false, userMessage: '', PrvMsgData: [], room: false, modal: false, user: '', roomUsers: {}}
+      return {logged: false, loggedHeader: false, users: [], chatBoxes: [], chatOpen: false, userMessage: '', PrvMsgData: [], room: false, modal: false, user: '', roomUsers: {}, windowWidth: ''}
     },
     componentDidMount: function(){
       var self = this;
+
+      var state        = this.state;
+      state.windowWdth = window.innerWidth + 'px'
+      console.log(state.windowWidth, " th is state ")
 
       socket.on('updateUsers', function(data){
         var state = self.state;
@@ -211,7 +215,7 @@ var Container = React.createClass({
     render: function(){
       var self = this;
       var userBoxes = this.props.chatBoxes.map(function(user, i){
-        return   <div className="PrivateMessageBox four columns" key={i}>
+        return   <div className="PrivateMessageBox five columns" key={i}>
                     <PrivateMessageHeader data={user} removeBox={self.props.removeBox}/>
                     <PrivateMessageArea   PrvMsgData={self.props.PrvMsgData} data={user}/>
                     <PrivateMessageInput  data={user}/>
@@ -895,8 +899,8 @@ var Registration = React.createClass({
       render: function(){
         return (
           <form className='username' onSubmit={this.handleSubmit}>
-            <div class='row'>
-              <div class='twelve columns'>
+            <div className='row'>
+              <div className='twelve columns'>
                 <input type="text" placeholder="Username Biotch" onChange={this.handleNameChange} value={this.state.username}/>
               </div>
             </div>

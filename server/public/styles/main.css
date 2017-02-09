@@ -11,13 +11,14 @@ body {
 body {
   background-color: #D96459;
 }
-.username {
-  width: 100%;
-  margin: 0 auto;
-}
-.username input {
-  margin-left: 42%;
-  margin-top: 18%;
+@media (min-width: 400px) {
+  .username input {
+    margin: 0 auto;
+    width: 50%;
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-top: 18%;
+  }
 }
 #main-page-header {
   background-color: #F2AE72;
@@ -109,19 +110,19 @@ body {
   position: absolute;
   bottom: 0;
   right: 0;
-  height: 240px;
+  height: 355px;
 }
 .PrivateMessageBox {
   border: 1px solid #F2AE72;
   float: right;
   margin-right: 1.9%;
   margin-left: 0;
-  height: 240px;
+  height: 355px;
   box-shadow: 0 8px 6px -6px black;
 }
 .PrivateMessageBox .top-bar {
-  height: 16%;
-  padding: 0.8%;
+  height: 15%;
+  padding: 4.8%;
   padding-right: 0.5%;
   background-color: #588C73;
   border: 1px solid #F2AE72;
@@ -130,10 +131,13 @@ body {
   float: left;
   margin: 0 auto;
   margin-left: 3%;
-  margin-top: 1%;
-  font-size: 2.0rem;
+  margin-top: -3.5%;
+  font-size: 2.2em;
+  font-family: 'Amatic SC', cursive;
   color: #F2E394;
   width: 50%;
+  letter-spacing: 0.049em;
+  font-weight: 900;
 }
 .PrivateMessageBox .top-bar i {
   color: #F2E394;
@@ -160,7 +164,7 @@ body {
 }
 .PrivateMessageBox .prvSend {
   margin-bottom: 0;
-  height: 39px;
+  height: 63px;
   border-top: 0.8px solid #F2AE72;
   border-left: 0;
 }
@@ -169,7 +173,7 @@ body {
 }
 .PrivateMessageBox .PrivateMessage {
   width: 100%;
-  height: 68%;
+  height: 67%;
   overflow: auto;
   background-color: floralwhite;
 }
