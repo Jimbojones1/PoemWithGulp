@@ -687,8 +687,8 @@ var Timer = React.createClass({
       render: function(){
         return (
           <form className='username' onSubmit={this.handleSubmit}>
-            <div class='row'>
-              <div class='twelve columns'>
+            <div className='row'>
+              <div className='twelve columns'>
                 <input type="text" placeholder="Username Biotch" onChange={this.handleNameChange} value={this.state.username}/>
               </div>
             </div>

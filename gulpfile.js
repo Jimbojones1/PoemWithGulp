@@ -13,7 +13,7 @@ gulp.task('watch', function(){
 })
 
 gulp.task('react', function(){
-  return browserify('./clientReact/app.js')
+  return browserify(['./clientReact/app.js'])
           .transform('babelify', {presets: ["react"]})
           .bundle()
           .pipe(source('build.js'))
