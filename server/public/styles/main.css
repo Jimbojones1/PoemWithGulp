@@ -1,3 +1,6 @@
+@-ms-viewport {
+  width: device-width;
+}
 html,
 body {
   width: 100%;
@@ -8,11 +11,14 @@ body {
 body {
   background-color: #D96459;
 }
-.username {
-  margin-left: 40%;
-  margin-top: 25%;
-  margin-right: 40%;
-  position: fixed;
+@media (min-width: 400px) {
+  .username input {
+    margin: 0 auto;
+    width: 50%;
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-top: 18%;
+  }
 }
 #main-page-header {
   background-color: #F2AE72;
@@ -73,7 +79,7 @@ body {
 }
 #Welcome-Container #quote {
   width: 40%;
-  margin-left: 32f%;
+  margin-left: 32%;
   margin-top: 14%;
   background-color: floralwhite;
   padding: 1.3em;
@@ -81,16 +87,6 @@ body {
   color: black;
   font-size: 1.1em;
   box-shadow: inset 0 0 1px 1px #F2AE72;
-}
-#Welcome-Container quote {
-  float: right;
-  margin-right: 8%;
-  color: black;
-  box-shadow: inset 0 0 12px -1px #F2AE72;
-  padding: 0.5em;
-  margin-top: -0.8%;
-  background-color: floralwhite;
-  border-radius: 11%;
 }
 #Welcome-Container p {
   background: floralwhite;
@@ -103,25 +99,30 @@ body {
   border-radius: 19%;
   box-shadow: inset 0 0 1px 1px #F2AE72;
 }
+@media (min-width: 1200px) {
+  #author {
+    float: right;
+    margin-right: 19%;
+  }
+}
 #prvBoxarea {
-  width: 60%;
-  overflow-x: auto;
+  width: 68%;
   position: absolute;
   bottom: 0;
   right: 0;
-  height: 240px;
+  height: 355px;
 }
 .PrivateMessageBox {
   border: 1px solid #F2AE72;
   float: right;
-  width: 25%;
   margin-right: 1.9%;
-  height: 240px;
+  margin-left: 0;
+  height: 355px;
   box-shadow: 0 8px 6px -6px black;
 }
 .PrivateMessageBox .top-bar {
-  height: 16%;
-  padding: 0.8%;
+  height: 15%;
+  padding: 4.8%;
   padding-right: 0.5%;
   background-color: #588C73;
   border: 1px solid #F2AE72;
@@ -130,10 +131,13 @@ body {
   float: left;
   margin: 0 auto;
   margin-left: 3%;
-  margin-top: 1%;
-  font-size: 2.0rem;
+  margin-top: -3.5%;
+  font-size: 2.2em;
+  font-family: 'Amatic SC', cursive;
   color: #F2E394;
   width: 50%;
+  letter-spacing: 0.049em;
+  font-weight: 900;
 }
 .PrivateMessageBox .top-bar i {
   color: #F2E394;
@@ -160,7 +164,7 @@ body {
 }
 .PrivateMessageBox .prvSend {
   margin-bottom: 0;
-  height: 39px;
+  height: 63px;
   border-top: 0.8px solid #F2AE72;
   border-left: 0;
 }
@@ -169,7 +173,7 @@ body {
 }
 .PrivateMessageBox .PrivateMessage {
   width: 100%;
-  height: 68%;
+  height: 67%;
   overflow: auto;
   background-color: floralwhite;
 }
@@ -188,6 +192,11 @@ body {
 .PrivateMessageBox .PrivateMessage .Reciepient {
   color: #8C4646;
   font-weight: bold;
+}
+@media (min-width: 1200px) {
+  .PrivateMessageBox {
+    width: 25.666667% !important;
+  }
 }
 #dialog {
   width: 100%;
@@ -214,29 +223,51 @@ body {
   margin-right: -13%;
 }
 #Room {
-  background-color: white;
+  background-color: #D96459;
+  height: 100%;
+  width: 100%;
+  position: absolute;
 }
 #Room #RoomUser {
-  background-color: #E8C3C3;
   width: 26%;
   float: left;
   margin-right: 1%;
   height: 200px;
 }
+#Room #RoomUser h4 {
+  margin-left: 13%;
+  margin-top: 7%;
+}
 #Room #PoemArea {
   float: left;
-  width: 46%;
-  background-color: aliceblue;
-  height: 280px;
+  width: 40%;
+  background-color: floralwhite;
+  height: 98%;
   padding: 0.5%;
+  padding-top: 0;
+  padding-bottom: 0;
   overflow: auto;
   resize: none;
   outline: none;
+  border-radius: 20%;
+  border: 3px solid #8C4646;
 }
 #Room #peomContainer {
   float: right;
-  background-color: beige;
   width: 25%;
+}
+#Room #peomContainer #timer {
+  width: 58%;
+  margin-bottom: 0px;
+}
+#Room #peomContainer button {
+  margin-left: 9%;
+  margin-top: 20%;
+}
+#Room #peomContainer #saveButton {
+  margin-top: 14%;
+  margin-left: 0;
+  margin-right: 5%;
 }
 #poemsArea {
   width: 100%;
@@ -246,3 +277,113 @@ body {
   overflow: auto;
   resize: none;
 }
+#poemsArea p {
+  margin-bottom: 0 !important;
+  margin: 0;
+}
+textarea {
+  resize: none;
+  width: 75%;
+  height: 66.239%;
+  position: absolute;
+  background: transparent;
+  color: transparent;
+  top: 0;
+  border: none !important;
+  overflow: auto;
+  outline: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+.blinking-cursor {
+  margin-left: -4px;
+  font-weight: 100;
+  font-size: 1em;
+  color: #2E3D48;
+  -webkit-animation: 1s blink step-end infinite;
+  -moz-animation: 1s blink step-end infinite;
+  -ms-animation: 1s blink step-end infinite;
+  -o-animation: 1s blink step-end infinite;
+  animation: 1s blink step-end infinite;
+}
+@keyframes "blink" {
+  from,
+  to {
+    color: transparent;
+  }
+  50% {
+    color: black;
+  }
+}
+@-moz-keyframes blink {
+  from,
+  to {
+    color: transparent;
+  }
+  50% {
+    color: black;
+  }
+}
+@-webkit-keyframes "blink" {
+  from,
+  to {
+    color: transparent;
+  }
+  50% {
+    color: black;
+  }
+}
+@-ms-keyframes "blink" {
+  from,
+  to {
+    color: transparent;
+  }
+  50% {
+    color: black;
+  }
+}
+@-o-keyframes "blink" {
+  from,
+  to {
+    color: transparent;
+  }
+  50% {
+    color: black;
+  }
+}
+#FormContainer {
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+#FormContainer ul li {
+  display: inline-block;
+  margin-right: 4rem;
+}
+#FormContainer #FormModal {
+  width: 47%;
+  height: 35%;
+  margin-left: 19%;
+  z-index: 200;
+  background-color: #fff;
+  margin-top: 14%;
+  border: 2px solid rgba(250, 250, 250, 0.8);
+  box-shadow: 1px 2px 3px 50rem rgba(82, 74, 74, 0.63);
+  padding-top: 5%;
+  padding-left: 12%;
+  padding-right: 8%;
+}
+#FormContainer #FormModal span {
+  color: #D96459;
+}
+#FormContainer #FormModal input {
+  margin-right: 3%;
+}
+#FormContainer #FormModal button {
+  margin: 0;
+}
+/* Portrait */

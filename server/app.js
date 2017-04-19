@@ -6,10 +6,22 @@ require('dotenv').config();
     router   = express.Router(),
     bodyParser = require('body-parser'),
     cors       = require('cors'),
-    path = require('path');
+    browserSync = require('browser-sync')
+    path = require('path'),
+    bcrypt  = require('bcrypt'),
+    session = require("express-session")({
+    secret: "my-secret",
+    resave: true,
+    saveUninitialized: true
+  }),
+  sharedsession = require("express-socket.io-session");
 
 
+app.use(session);
 
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'hbs');
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(bodyParser.json());
@@ -20,7 +32,14 @@ app.use(bodyParser.urlencoded({extended: true}))
 require('./db/db')
 
 // Requiring Models
-PrivateMessageModel = require('./models/PrivateMessageModel')
+var PrivateMessageModel = require('./models/PrivateMessageModel')
+var User                = require('./models/UserModel')
+
+
+
+//Require Controllers
+var UsersController = require('./controllers/UsersController')
+var PoemsController = require('./controllers/PoemsController')
 
 // Routes
 app.get('/', function(req, res){
@@ -55,24 +74,34 @@ app.get('/burrito', function(req, res){
   });
 })
 
+
+
+app.use('/user/', UsersController)
+app.use('/poem/', PoemsController)
+
+
 // Socket Server Code
 
 var onlineClients = {},
     usernames     = {};
 
+io.use(sharedsession(session, {
+  autoSave: true
+}));
 
 io.sockets.on('connect', function(socket){
 
   socket.on('disconnect', function(){
     delete usernames[socket.username]
     io.sockets.emit('updateUsers', Object.keys(usernames))
-
-
   })
 
 
   socket.on('adduser', function(username){
+    console.log(socket.handshake.session)
     console.log(username.username)
+    socket.handshake.session.username = username.username;
+    socket.handshake.session.isLoggedIn = false;
     //  Here I'm saving the username of the current socket
     socket.username = username.username;
     // we store the username in socket session for this client
@@ -137,6 +166,9 @@ io.sockets.on('connect', function(socket){
     console.log(finalPoem, 'final poem')
     console.log('---------------------------------------this is poemingggn')
     console.log(users)
+    // if (userOnePoem === '<br>' || userTwoPoem === '<br>'){
+
+    // }
 
     var sender = users.user1;
     var recipient = users.user2;
@@ -153,36 +185,98 @@ io.sockets.on('connect', function(socket){
     io.sockets.connected[onlineClients[reciepant]].emit('timerStart', timer)
    })
 
-   socket.on('whosTurn', function(turnNumber, clickedStart, timerUser){
-    console.log(timerUser, 'this is timeUser', turnNumber, 'turn number', clickedStart, 'clickedStart')
-    var reciepant = timerUser;
+
+    socket.on('savePoem', function(poem){
+      console.log('why isn')
+      console.log(poem, 'this is in save Poem')
+     socket.handshake.session.reload(function(err) {
+          // session updated
+          console.log(socket.handshake.session.isLoggedIn, !socket.handshake.session.isLoggedIn, 'this is inside of session reload')
+            if (!socket.handshake.session.isLoggedIn){
+              console.log('session is not logged in, saved poem function', socket.handshake.session)
+              socket.emit('login', 'please login to save')
+            }
+            else{
+              var userUpdateObject = {};
+              userUpdateObject.poems = [];
+              userUpdateObject.poems.push({
+                timestamp: Date.now(),
+                poemers: ['jim', socket.handshake.session.username],
+                poem: poem
+
+              })
+              console.log('session is logged in save poem', socket.handshake.session)
+              User.findByIdAndUpdate(socket.handshake.session.userId, userUpdateObject, {new: true}, function(err, user){
+                if (err){
+                  console.log('there was an error in the database')
+                }
+                else {
+                  console.log('------------------------------------------------------------------------')
+                  console.log(socket.handshake.session.userId)
+                  socket.handshake.session.username = user.username;
+                  console.log(user, ' this is the user object in the save session socket', socket.handshake.session.username, user.username)
+                  console.log('------------------------------------------------------------------------')
+                  socket.emit('saved', 'the poem was saved')
+                }
+
+              })
+
+            }
+        })
+    })
+
+
+
+
+
+
+   socket.on('whosTurn', function(turnNumber, clickedStart, timerUser, socketFrom, showStart){
+
+    if(socketFrom != undefined){
+
+      console.log(timerUser, 'this is timeUser', turnNumber, 'turn number', clickedStart, 'clickedStart', socketFrom, 'socket From here')
+        var whosTurn = timerUser.user.user1 === socketFrom ? timerUser.user.user2 : timerUser.user.user1;
+        var reciepant = socketFrom === timerUser.user.user1 ? timerUser.user.user1 : timerUser.user.user2;
+        console.log(reciepant, whosTurn)
 
         if(turnNumber === 0 && clickedStart === true){
           console.log('if is hitting ')
-            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
+            io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
+            io.sockets.connected[onlineClients[reciepant]].emit('someOneClickedStart', false)
+            io.sockets.connected[onlineClients[whosTurn]].emit('someOneClickedStart', false)
           }
           else if(turnNumber === 1 && clickedStart === false){
-           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+           io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
+           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
           }
           else if(turnNumber === 1 && clickedStart === true){
-            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+            io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', true, reciepant)
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false, reciepant)
           }
           else if(turnNumber === 2 && clickedStart === false){
-           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+           io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', true, whosTurn)
+           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false, whosTurn)
           }
           else if(turnNumber === 2 && clickedStart === true){
-            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+            io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
           }
           else if(turnNumber === 3 && clickedStart === false){
-           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+           io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, reciepant)
+           io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true, reciepant)
           }
           else if(turnNumber === 3 && clickedStart === true){
-            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', true)
+            io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', true, reciepant)
+            io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false, reciepant)
           }
         else {
-          io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false)
+          io.sockets.connected[onlineClients[whosTurn]].emit('whosTurn', false, 'Poeming over')
+          io.sockets.connected[onlineClients[reciepant]].emit('whosTurn', false, 'Poeming over')
         }
-   })
+      }
+   });
+
 
 
     socket.on('error', function(error){
@@ -191,14 +285,17 @@ io.sockets.on('connect', function(socket){
 
 })// end of socket connection
 
-function whosTurn(turnNumber, clickedStart){
 
 
 
-}
-
-
-server.listen(8080, function(){
-  console.log('The server is listening on port 8080')
+server.listen(3000, function(){
+  console.log('Server is listening on port 3000')
 })
 
+
+// function listening () {
+//   browserSync({
+//     proxy: 'localhost:' + 3000,
+//     files: ['public/**/*.{js,css}']
+//   });
+// }

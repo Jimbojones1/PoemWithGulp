@@ -4,7 +4,8 @@
   "description": "Poem app using sockets React and Gulp",
   "main": "server/app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/apps.js"
   },
   "repository": {
     "type": "git",
@@ -19,19 +20,32 @@
   "dependencies": {
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.2.0",
+    "bcrypt": "^0.8.7",
     "body-parser": "^1.15.0",
     "browserify": "^13.0.0",
     "cors": "^2.7.1",
     "dotenv": "^2.0.0",
     "express": "^4.13.4",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.14.0",
+    "express-socket.io-session": "^1.3.1",
     "gulp": "^3.9.1",
-    "gulp-watch": "^4.3.5",
+    "gulp-less": "^3.1.0",
+    "gulp-watch": "^4.3.10",
     "mongoose": "^4.4.12",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
+    "superagent": "^2.2.0",
+    "velocity-react": "^1.2.1",
     "vinyl-source-stream": "^1.1.0"
   },
   "devDependencies": {
-    "gulp-less": "^3.0.5"
+    "babel-preset-es2015": "^6.22.0",
+    "babel-preset-react": "^6.5.0",
+    "browser-sync": "^2.14.0",
+    "gulp": "^3.9.1",
+    "gulp-less": "^3.0.5",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
   }
 }

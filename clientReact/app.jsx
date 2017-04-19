@@ -1,14 +1,21 @@
-var React = require('react');
-var ReactDOM = require('react-dom')
-var io = require('socket.io-client')
-var socket = io.connect();
+var React    = require('react');
+var ReactDOM = require('react-dom');
+var io       = require('socket.io-client')
+var socket   = io.connect();
+var request  = require('superagent');
+var velocity = require('velocity-animate');
+
 
 var Container = React.createClass({
     getInitialState: function(){
-      return {logged: false, loggedHeader: false, users: [], chatBoxes: [], chatOpen: false, userMessage: '', PrvMsgData: [], room: false, modal: false, user: '', roomUsers: {}}
+      return {logged: false, loggedHeader: false, users: [], chatBoxes: [], chatOpen: false, userMessage: '', PrvMsgData: [], room: false, modal: false, user: '', roomUsers: {}, windowWidth: ''}
     },
     componentDidMount: function(){
       var self = this;
+
+      var state        = this.state;
+      state.windowWdth = window.innerWidth + 'px'
+      console.log(state.windowWidth, " th is state ")
 
       socket.on('updateUsers', function(data){
         var state = self.state;
@@ -209,7 +216,7 @@ var Container = React.createClass({
     render: function(){
       var self = this;
       var userBoxes = this.props.chatBoxes.map(function(user, i){
-        return   <div className="PrivateMessageBox four columns" key={i}>
+        return   <div className="PrivateMessageBox five columns" key={i}>
                     <PrivateMessageHeader data={user} removeBox={self.props.removeBox}/>
                     <PrivateMessageArea   PrvMsgData={self.props.PrvMsgData} data={user}/>
                     <PrivateMessageInput  data={user}/>
@@ -261,7 +268,6 @@ var Container = React.createClass({
 
   var PrivateMessageButton = React.createClass({
     removeClick: function(user){
-
       this.props.removeBox(user);
     },
     render: function(){
@@ -381,7 +387,7 @@ var WelcomeContainer = React.createClass({
           Hold Infinity in the palm of your hand
           And Eternity in an hour."
         </blockquote>
-        <quote>~William Blake</quote>
+        <span id="author">~William Blake</span>
       </div>
       )
   3 }
@@ -395,8 +401,6 @@ var Modal = React.createClass({
     socket.emit('chatAccepted', this.props.user, socket.username)
     socket.emit('pm', this.props.user, 'poemWithMeAccepted')
     this.props.modalClick(true)
-
-
   },
   clickNo: function(){
     this.props.modalClick(false)
@@ -419,34 +423,45 @@ var Modal = React.createClass({
 
 var Room = React.createClass({
   getInitialState: function(){
-    return {finalPoem: '', userTextArea: '', userTwo: '', activateTyping: false}
+    return {finalPoem: '', userTextArea: '', userTwo: '', activateTyping: false, whosTurn: ''}
   },
   getUserTextAreaInput: function(userText, userTyping){
     var state = this.state;
-    console.log(state)
     var length = userText.length;
     var letter = userText.slice(length - 1, length);
+    console.log(letter, ' this is letter')
     if(state.activateTyping === true){
 
 
         if(this.props.roomUsers.user1 === userTyping){
-          state.userTextArea = letter;
-          socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem)
-          this.setState(state)
+
+             if(userText === '<br>'){
+              state.userTextArea = userText
+              socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem)
+              this.setState(state)
+            }
+            else{
+              state.userTextArea = letter;
+              socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem)
+              this.setState(state)
+            }
 
         }else {
-          state.userTwo = letter;
-
-          socket.emit('poeming', state.userTwo, this.props.roomUsers, this.state.userTextArea, this.state.finalPoem)
-
-          this.setState(state)
+            if(userText === '<br>'){
+              state.userTextArea = userText
+              socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem)
+            }
+            else{
+              state.userTwo = letter;
+              socket.emit('poeming', this.state.userTwo, this.props.roomUsers, state.userTextArea, this.state.finalPoem)
+            }
+           this.setState(state)
         }
      }
 
   },
   allowTyping: function(finished){
     var state = this.state;
-    console.log(finished, 'allow typing variableeeeeeeeeeeeee')
     state.activateTyping = finished;
     this.setState(state);
   },
@@ -456,26 +471,36 @@ var Room = React.createClass({
     socket.on('updatePoem', function(userOnePoem, userTwoPoem, finalPoem){
       if(userOnePoem.length >= 1){
 
-
+        console.log(userOnePoem, ' this is userOnePoem ')
         state.finalPoem = state.finalPoem + userOnePoem;
         self.setState(state)
       }
       else if(userTwoPoem.length >= 1){
-
+        console.log(userTwoPoem, ' this is userTwoPoem ')
         state.finalPoem = state.finalPoem + userTwoPoem;
         self.setState(state)
       }
       else {
-        var length = state.finalPoem.length
-        var backspace = state.finalPoem.slice(0, length - 1)
-        state.finalPoem = backspace;
-        self.setState(state)
+
+    // check the end of finalPoem and cut it off ----------------------------------------------------------------------
+        var length      = state.finalPoem.length
+        var backspace   = state.finalPoem.slice(0, length - 1)
+
+        if(backspace.endsWith('<br')){
+
+          backspace = state.finalPoem.slice(0, length - 4)
+          state.finalPoem = backspace;
+          self.setState(state)
+        }else{
+          state.finalPoem = backspace;
+          self.setState(state)
+        }
       }
     })
 
-    socket.on('whosTurn', function(typeDude){
-      console.log('whos turn is happening : ) ', typeDude)
+    socket.on('whosTurn', function(typeDude, whosTurn){
       state.activateTyping = typeDude;
+      state.whosTurn = whosTurn
       self.setState(state);
     })
   },
@@ -484,7 +509,7 @@ var Room = React.createClass({
       <div id="Room">
         <RoomUser user={this.props.roomUsers} poem={this.state.finalPoem} getUserTextAreaInput={this.getUserTextAreaInput} activeTyping={this.state.activateTyping}/>
         <PoemArea poem={this.state.finalPoem} userText={this.state.userTextArea}/>
-        <PoemContainer activateTyping={this.allowTyping} user={this.props.roomUsers}/>
+        <PoemContainer poem={this.state.finalPoem} activateTyping={this.allowTyping} user={this.props.roomUsers} whosTypingActive={this.state.activateTyping} whosTurn={this.state.whosTurn}/>
       </div>
      )
     }
@@ -505,12 +530,13 @@ var RoomUser = React.createClass({
     var state = this.state;
         state.textAreaValue = event.target.value;
         this.setState(state)
-    console.log(this.props.activeTyping, '----------------------------------activatTyping props in room user')
 
-
-        if(state.keyCode === 8){
+      if(state.keyCode === 8){
         this.props.getUserTextAreaInput('', user)
-      }
+       }
+       else if(state.keyCode === 13){
+        this.props.getUserTextAreaInput('<br>', user)
+       }
        else {
          this.props.getUserTextAreaInput(event.target.value, user)
         }
@@ -519,8 +545,8 @@ var RoomUser = React.createClass({
   render: function(){
     return (
       <div id="RoomUser">
-        {this.props.user.user1 != socket.username ? <h4>{this.props.user.user2}</h4> : <h4>{this.props.user.user1}</h4>}
-        <textarea type="text" placeholder="Username Biotch" onChange={this.handleTyping} onKeyDown={this.keyDown} value={this.state.textAreaValue}/>
+        {this.props.user.user1 != socket.username ? <h4>{"Let's poem" + this.props.user.user2}</h4> : <h4>{"Let's poem " + this.props.user.user1}</h4>}
+        <textarea autoFocus="true" spellCheck="false" type="text" onChange={this.handleTyping} onKeyDown={this.keyDown} value={this.state.textAreaValue}/>
       </div>
       )
     }
@@ -529,10 +555,22 @@ var RoomUser = React.createClass({
 
 var PoemArea = React.createClass({
   render: function(){
+    console.log(this.props, 'this is poem are this.props')
+    var re = new RegExp("<br>");
+    var poemSplit = this.props.poem.split(re)
+    var finalPoem = poemSplit.map(function(words, i){
+      if(i === poemSplit.length - 1){
+        return <p key={i}>{words} <span className="blinking-cursor">|</span></p>
+      }
+      else{
+        return <p key={i}>{words}</p>
+      }
+
+    })
     return (
       <div id="PoemArea">
-          <h4>This is the Poem Area </h4>
-          <p id="poemsArea">{this.props.poem}</p>
+          <h4></h4>
+          <div id="poemsArea">{finalPoem}</div>
       </div>
       )
     }
@@ -542,8 +580,7 @@ var PoemContainer = React.createClass({
   render: function(){
     return (
       <div id="peomContainer">
-        <p>This is poem container</p>
-        <Timer activateTyping={this.props.activateTyping} user={this.props.user}/>
+        <Timer poem={this.props.poem} activateTyping={this.props.activateTyping} user={this.props.user} whosTurn={this.props.whosTurn} whosTypingActive={this.props.whosTypingActive}/>
       </div>
       )
     }
@@ -552,7 +589,7 @@ var PoemContainer = React.createClass({
 
 var Timer = React.createClass({
   getInitialState: function(){
-    return {time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false}
+    return {time: 20, goTime: false, countdown: 3, turns: 0, personWhoClickedStart: false, showLogin: false, logged: false, showSaveMessage: false, errorMessage: '', showSave: true, showStart: true}
   },
   handleClick: function(){
     // set the interval for timer here
@@ -562,8 +599,11 @@ var Timer = React.createClass({
     socket.emit('timer', timerUser, true);
     this.timer = setInterval(this.tick, 1000)
     state.personWhoClickedStart = true;
-    socket.emit('whosTurn', state.turns, state.personWhoClickedStart, whoClicked)
+    state.showStart = false;
+    state.whosTurn = whoClicked;
+    socket.emit('whosTurn', state.turns, state.personWhoClickedStart, this.props, socket.username, state.showStart)
     this.setState(state);
+
   },
   componentDidMount: function(){
     var state = this.state;
@@ -575,40 +615,70 @@ var Timer = React.createClass({
       self.timer = setInterval(self.tick, 1000)
       self.setState(state)
     })
+
+    socket.on('login', function(message){
+      console.log(message, ' this is the login socket!')
+      console.log('please login to save' === message, ' this is login something')
+      'please login to save' === message ? state.showLogin = true : state.showLogin = false;
+      self.setState(state)
+      console.log(this.state, 'this is login socket state ')
+    })
+
+    socket.on('someOneClickedStart', function(clickedStart){
+      console.log('this is someOneClickedStart event emitter')
+      state.showStart = clickedStart;
+      self.setState(state);
+    })
+
+    socket.on('saved', function(message){
+      console.log('saved socket is happening')
+      'the poem was saved' === message ? state.showSaveMessage = true : state.showSaveMessage = false;
+      state.showLogin = false;
+      state.showSave = false;
+      self.setState(state)
+      console.log(message)
+    })
+
   },
   checkGameOver: function(){
     var state = this.state;
+    var timerUser = this.props.user.user1 === socket.username ? this.props.user.user2 : this.props.user.user1;
     if(state.turns === 4){
        clearInterval(this.timer)
        clearInterval(this.countdown)
-       console.log('game overrrrrr')
+       socket.emit('whosTurn', state.turns, state.personWhoClickedStart, timerUser)
     }
+
   },
   checkTime: function(){
     var state = this.state;
     var previousTurn = this.state.lastTurn;
-    var timerUser = this.props.user.user1 === socket.username ? this.props.user.user2 : this.props.user.user1;
+    var timerUser = this.props;
      if(state.goTime === true){
 
-         if (state.time > 0){
-          state.time--;
-          this.setState(state)
+           if (state.time > 0){
+            state.time--;
+            this.setState(state)
+
           }
           else if (state.time === 0){
              clearInterval(this.timer)
              clearInterval(this.countdown)
              state.time = 20;
              state.turns++;
-             socket.emit('whosTurn', state.turns, state.personWhoClickedStart, timerUser)
+             if(state.turns < 5){
+             socket.emit('whosTurn', state.turns, state.personWhoClickedStart, timerUser, socket.username)
              this.countdown = setInterval(this.countDownTick, 1000)
             // this.props.activateTyping(true)
+
+             }
             this.setState(state);
             this.checkGameOver();
           }
           else {
-             return null;
+            return null
           }
-      }
+       }
   },
   checkCountdown: function(){
     var state = this.state;
@@ -634,23 +704,167 @@ var Timer = React.createClass({
     state.goTime = true;
     this.setState(state);
     this.checkTime();
+    // calling setState causes the component to be re-rendered
+  },
+  loginClick: function(data){
+    var state = this.state;
+    if (data === "you're in beautiful" || data === "Thankyou, you have successfully registered."){
+      console.log('if inside login click is happening')
+      state.logged = true
+      this.state.showLogin = false
+    }
+    else {
+      state.errorMessage = data;
+    }
+    this.setState(state);
+  },
+  removeErrorMessage: function(userclicked){
+    var state = this.state;
+    if(userclicked){
+      state.errorMessage = '';
+      console.log('userclicked happenend')
+      this.setState(state)
+    }
+    else {
+      return null
+    }
   },
   render: function(){
     return (
       <div>
-        <button id="submit" onClick={this.handleClick}>Start</button>
-        <p> {this.state.time + ' seconds left'}</p>
-        <p> {this.state.turns + ' this is turn numberrrrr'}</p>
+        {this.state.showStart ? <button id="submit" onClick={this.handleClick}>Start</button> : null}
+        {this.state.turns === 4 && this.state.time === 20 || this.state.logged && this.state.showSave ? <SaveButton poem={this.props.poem}/> : null}
+        {this.state.showSaveMessage ? " You saved your poem " : null}
+        {this.state.logged ? socket.username + " you're logged in now you may save": null}
+        {this.state.showLogin ? <Forms loginClick={this.loginClick} errorMessage={this.state.errorMessage} removeErrorMessage={this.removeErrorMessage}/> : null}
+        <hr/>
+        <p id="timer"> {this.state.time + ' seconds left'}</p>
+        <hr/>
+        <p> {'Turn number: ' + this.state.turns}</p>
+        <hr/>
+        <p> {this.props.whosTurn + " it's your turn"}</p>
+        <hr/>
         <p>{this.state.countdown + ' seconds player 2 ready'}</p>
+        <hr/>
       </div>
       )
   }
 })
 
 
+var SaveButton = React.createClass({
+  handleSubmit: function(){
+    console.log('this is working')
+    var poem = this.props.poem;
+    console.log(poem, ' this is poem when i click save button')
+    socket.emit('savePoem', poem)
+    console.log('this hit too')
+  },
+  render: function(){
+    console.log(this.props, 'this is the save Button props' )
+    return (
+      <button id="saveButton" onClick={this.handleSubmit}>Save</button>
+      )
+  }
+})
 
 
+var Forms = React.createClass({
+  getInitialState: function(){
+    return {login: true}
+  },
+  handleClick: function(event){
+    console.log(event.target.value)
+    this.props.removeErrorMessage(true)
+    var state = this.state;
+    'Login' === event.target.innerText ? state.login = true : state.login = false;
+    this.setState(state);
+    console.log(this.state)
+    console.log(event.target.innerText, typeof event.target.innerText, event.target.innerText === 'Login', event.target.innerText == 'login')
+  },
+  render: function(){
+      return (
+          <div id="FormContainer">
+            <div id="FormModal">
+              <ul>
+                <li onClick={this.handleClick}>Login</li>
+                <li onClick={this.handleClick}>Registration</li>
+              </ul>
+              <span>{ this.props.errorMessage.length > 1 ? this.props.errorMessage : null} </span>
+              { this.state.login ? <LoginForm loginClick={this.props.loginClick} /> : <Registration loginClick={this.props.loginClick} />}
+            </div>
+          </div>
+          )
+       }
+    })
 
+var LoginForm = React.createClass({
+  getInitialState: function(){
+    return {username: '', password: ''}
+  },
+  handleInput: function(event){
+    var state = this.state;
+    state[event.target.name] = event.target.value;
+    this.setState(state)
+    console.log(state)
+    console.log(this.state)
+  },
+  handleFormSubmission: function(e){
+    console.log('this is happening')
+    e.preventDefault();
+       var self = this;
+      request.post('/user')
+        .send(self.state)
+        .end(function(err, data){
+          console.log(data)
+          self.props.loginClick(data.text)
+        })
+
+  },
+  render: function(){
+    return (
+         <form className="loginForm" onSubmit={this.handleSubmit}>
+            <input onChange={this.handleInput} type="text" name="username" placeholder="username" value={this.state.username}/>
+            <input onChange={this.handleInput} type="password" name="password" placeholder="password" value={this.state.password}/>
+            <button onClick={this.handleFormSubmission}>Submit</button>
+          </form>
+      )
+  }
+})
+
+
+var Registration = React.createClass({
+  getInitialState: function(){
+    return {username: '', password: '', passwordTwo: ''}
+  },
+  handleInput: function(event){
+    var state = this.state;
+    state[event.target.name] = event.target.value;
+    this.setState(state)
+    console.log(state)
+    console.log(this.state)
+  },
+  handleFormSubmission: function(e){
+    e.preventDefault();
+       var self = this;
+      request.post('/user/registration')
+        .send(self.state)
+        .end(function(err, data){
+          self.props.loginClick(data.text)
+          console.log(data)
+        })
+  },
+  render: function(){
+    return (
+         <form className="loginForm" onSubmit={this.handleSubmit}>
+            <input onChange={this.handleInput} type="text" name="username" placeholder="username" value={this.state.username}/>
+            <input onChange={this.handleInput} type="password" name="password" placeholder="password" value={this.state.password}/>
+            <input onChange={this.handleInput} type="password" name="passwordTwo" placeholder="password" value={this.state.passwordTwo}/>
+            <button onClick={this.handleFormSubmission}>Submit</button>
+          </form>
+      )
+  }
+})
 
 // var ModalButtons = React.createClass({
 //   render: function(){
