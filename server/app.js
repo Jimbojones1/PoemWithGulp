@@ -191,7 +191,7 @@ io.sockets.on('connect', function(socket){
       console.log(poem, 'this is in save Poem')
      socket.handshake.session.reload(function(err) {
           // session updated
-          console.log(socket.handshake.session, !socket.handshake.session.isLoggedIn, 'this is inside of session reload')
+          console.log(socket.handshake.session.isLoggedIn, !socket.handshake.session.isLoggedIn, 'this is inside of session reload')
             if (!socket.handshake.session.isLoggedIn){
               console.log('session is not logged in, saved poem function', socket.handshake.session)
               socket.emit('login', 'please login to save')

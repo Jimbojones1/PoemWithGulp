@@ -1,8 +1,9 @@
-var React = require('react');
+var React    = require('react');
 var ReactDOM = require('react-dom');
-var io = require('socket.io-client')
-var socket = io.connect();
-var request = require('superagent');
+var io       = require('socket.io-client')
+var socket   = io.connect();
+var request  = require('superagent');
+var velocity = require('velocity-animate');
 
 
 var Container = React.createClass({
@@ -809,6 +810,7 @@ var LoginForm = React.createClass({
     console.log(this.state)
   },
   handleFormSubmission: function(e){
+    console.log('this is happening')
     e.preventDefault();
        var self = this;
       request.post('/user')
