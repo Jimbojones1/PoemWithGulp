@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
  var express = require('express'),
     app      = express(),
     server   = require('http').createServer(app),
@@ -8,7 +8,7 @@ require('dotenv').config();
     cors       = require('cors'),
     browserSync = require('browser-sync')
     path = require('path'),
-    bcrypt  = require('bcrypt'),
+    // bcrypt  = require('bcrypt'),
     session = require("express-session")({
     secret: "my-secret",
     resave: true,
@@ -29,16 +29,16 @@ app.use(bodyParser.urlencoded({extended: true}))
 
 
 // Requiring Database
-require('./db/db')
+// require('./db/db')
 
 // Requiring Models
-var PrivateMessageModel = require('./models/PrivateMessageModel')
-var User                = require('./models/UserModel')
+// var PrivateMessageModel = require('./models/PrivateMessageModel')
+// var User                = require('./models/UserModel')
 
 
 
 //Require Controllers
-var UsersController = require('./controllers/UsersController')
+// var UsersController = require('./controllers/UsersController')
 var PoemsController = require('./controllers/PoemsController')
 
 // Routes
@@ -76,7 +76,7 @@ app.get('/burrito', function(req, res){
 
 
 
-app.use('/user/', UsersController)
+// app.use('/user/', UsersController)
 app.use('/poem/', PoemsController)
 
 
@@ -126,24 +126,24 @@ io.sockets.on('connect', function(socket){
     console.log('--------------------')
     console.log(privateMessage)
 
-    var prvMsgDataObject = {}
-        prvMsgDataObject.recipients = []
-        prvMsgDataObject.chatHistory = []
+    // var prvMsgDataObject = {}
+    //     prvMsgDataObject.recipients = []
+    //     prvMsgDataObject.chatHistory = []
 
-    prvMsgDataObject.chatHistory.push({
-      timestamp: Date.now(),
-      recipient: userTo,
-      sender: socket.username,
-      content: privateMessage
-    })
+    // prvMsgDataObject.chatHistory.push({
+    //   timestamp: Date.now(),
+    //   recipient: userTo,
+    //   sender: socket.username,
+    //   content: privateMessage
+    // })
 
-    prvMsgDataObject.recipients.push(userTo, socket.username);
+    // prvMsgDataObject.recipients.push(userTo, socket.username);
 
-    PrivateMessageModel.create(prvMsgDataObject, function(err, Messages){
-      // console.log('------------------THis is messages-----------------')
-      // console.log(Messages)
-      // console.log('---------------- This is messages-------------------')
-    })
+    // PrivateMessageModel.create(prvMsgDataObject, function(err, Messages){
+    //   // console.log('------------------THis is messages-----------------')
+    //   // console.log(Messages)
+    //   // console.log('---------------- This is messages-------------------')
+    // })
     io.sockets.connected[onlineClients[userTo]].emit('updatePrivateChat', socket.username, userTo, privateMessage)
     io.sockets.connected[onlineClients[socket.username]].emit('updatePrivateChat', socket.username, userTo, privateMessage)
   })
@@ -206,20 +206,20 @@ io.sockets.on('connect', function(socket){
 
               })
               console.log('session is logged in save poem', socket.handshake.session)
-              User.findByIdAndUpdate(socket.handshake.session.userId, userUpdateObject, {new: true}, function(err, user){
-                if (err){
-                  console.log('there was an error in the database')
-                }
-                else {
-                  console.log('------------------------------------------------------------------------')
-                  console.log(socket.handshake.session.userId)
-                  socket.handshake.session.username = user.username;
-                  console.log(user, ' this is the user object in the save session socket', socket.handshake.session.username, user.username)
-                  console.log('------------------------------------------------------------------------')
-                  socket.emit('saved', 'the poem was saved')
-                }
+              // User.findByIdAndUpdate(socket.handshake.session.userId, userUpdateObject, {new: true}, function(err, user){
+              //   if (err){
+              //     console.log('there was an error in the database')
+              //   }
+              //   else {
+              //     console.log('------------------------------------------------------------------------')
+              //     console.log(socket.handshake.session.userId)
+              //     socket.handshake.session.username = user.username;
+              //     console.log(user, ' this is the user object in the save session socket', socket.handshake.session.username, user.username)
+              //     console.log('------------------------------------------------------------------------')
+              //     socket.emit('saved', 'the poem was saved')
+              //   }
 
-              })
+              // })
 
             }
         })
